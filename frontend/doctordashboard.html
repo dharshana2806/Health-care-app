@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Dashboard - Mental Health System</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="theme-toggle">
+    <button id="themeToggle">🌙</button>
+  </div>
+
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="" alt="Profile" class="profile-photo-small" id="profilePhoto">
+        <h3 id="userName">Loading...</h3>
+        <p id="userSpec" style="font-size: 12px; color: var(--text-secondary);"></p>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-section="overview">📊 Overview</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="patients">👥 My Patients</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="patient-history">📋 Patient History</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="sentiment">📈 Sentiment Trends</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="telecounseling">📬 Telecounseling</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="appointments">📅 Appointments</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="resources">📚 Upload Resources</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="complaint">⚠️ Complaint</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" id="logoutBtn">🚪 Logout</a>
+        </li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <!-- Overview Section -->
+      <section id="overviewSection" class="content-section active">
+        <div class="header">
+          <h1>Doctor Dashboard 👨‍⚕️</h1>
+          <p class="subtitle">Welcome back, Doctor</p>
+        </div>
+        <div class="cards-grid">
+          <div class="card stat-card">
+            <div class="stat-icon">👥</div>
+            <h3>Total Patients</h3>
+            <p class="stat-number" id="totalPatients">0</p>
+            <small>assigned to you</small>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">📅</div>
+            <h3>Pending Appointments</h3>
+            <p class="stat-number" id="pendingAppointments">0</p>
+            <small>awaiting approval</small>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">📬</div>
+            <h3>Unread Messages</h3>
+            <p class="stat-number" id="unreadMessages">0</p>
+            <small>from patients</small>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">⚠️</div>
+            <h3>High Risk Patients</h3>
+            <p class="stat-number" id="highRiskPatients">0</p>
+            <small>need attention</small>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Quick Actions</h3>
+          <div class="quick-actions">
+            <button class="btn btn-primary" onclick="showSection('patients')">View Patients</button>
+            <button class="btn btn-primary" onclick="showSection('appointments')">Manage Appointments</button>
+            <button class="btn btn-primary" onclick="showSection('telecounseling')">Open Chat</button>
+            <button class="btn btn-primary" onclick="showSection('resources')">Upload Resource</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- My Patients Section -->
+      <section id="patientsSection" class="content-section">
+        <div class="header">
+          <h1>My Patients</h1>
+          <p class="subtitle">Patients assigned to you</p>
+        </div>
+        <div id="patientsList" class="cards-grid">
+          <p class="empty-state">Loading patients...</p>
+        </div>
+      </section>
+
+      <!-- Patient History Section -->
+      <section id="patient-historySection" class="content-section">
+        <div class="header">
+          <h1>Patient History</h1>
+          <p class="subtitle">View detailed patient wellness history</p>
+        </div>
+        <div class="card">
+          <div class="form-group">
+            <label>Select Patient</label>
+            <select id="patientSelect" onchange="loadPatientHistory(this.value)">
+              <option value="">Choose a patient...</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="patientHistoryContent" style="display:none;">
+          <div class="card">
+            <h3>Patient Information</h3>
+            <div id="patientInfo"></div>
+          </div>
+
+          <div class="card" style="margin-top: 20px;">
+            <h3>Wellness History</h3>
+            <canvas id="patientHistoryChart" style="max-height: 300px;"></canvas>
+          </div>
+
+          <div class="card" style="margin-top: 20px;">
+            <h3>Recent Wellness Entries</h3>
+            <div id="patientWellnessEntries"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sentiment Trends Section -->
+      <section id="sentimentSection" class="content-section">
+        <div class="header">
+          <h1>Patient Sentiment Trends</h1>
+          <p class="subtitle">Patients ordered by average stress level</p>
+        </div>
+        <div class="card">
+          <div id="sentimentTrends">
+            <p class="empty-state">Loading sentiment data...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Telecounseling Section -->
+      <section id="telecounselingSection" class="content-section">
+        <div class="header">
+          <h1>Telecounseling</h1>
+          <p class="subtitle">Communicate with your patients</p>
+        </div>
+
+        <div class="telecounseling-layout">
+          <!-- Patient List -->
+          <div class="chat-patient-list card">
+            <h3>Patients</h3>
+            <div id="chatPatientsList">
+              <p class="empty-state">No patients available</p>
+            </div>
+          </div>
+
+          <!-- Chat Area -->
+          <div class="chat-container card">
+            <div class="chat-header" id="chatHeaderDoctor" style="display:none;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="" alt="Patient" id="patientPhotoChat" class="profile-photo-small">
+                <div>
+                  <h3 id="patientNameChat" style="margin: 0;">Select a patient</h3>
+                  <small id="patientStatusChat" style="color: var(--text-secondary);">-</small>
+                </div>
+              </div>
+              <div class="call-buttons">
+                <button class="btn btn-success" id="audioCallBtnDoctor">📞 Audio</button>
+                <button class="btn btn-primary" id="videoCallBtnDoctor">📱 Video</button>
+              </div>
+            </div>
+            <div class="chat-messages" id="chatMessagesDoctor">
+              <p class="empty-state">Select a patient to start conversation</p>
+            </div>
+            <div class="chat-input-container" id="chatInputDoctor" style="display:none;">
+              <input type="text" id="messageInputDoctor" placeholder="Type your message..." class="chat-input">
+              <button class="btn btn-icon" id="voiceMessageBtnDoctor" title="Record voice message">🎤</button>
+              <button class="btn btn-primary" id="sendMessageBtnDoctor">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Call Modal -->
+         <div id="videoCallModalDoctor" class="modal" style="display: none;">
+  <div class="modal-content video-call-modal">
+    <div class="video-container">
+      <!-- Remote Video - Full Screen - MUST have autoplay and playsinline -->
+      <video id="remoteVideoDoctor" autoplay playsinline></video>
+      
+      <!-- Local Video - Corner - MUST have autoplay, muted, and playsinline -->
+      <video id="localVideoDoctor" autoplay muted playsinline></video>
+      
+      <!-- Audio Only Indicator - Shows when no video -->
+      <div class="audio-only-indicator">
+        <div class="avatar">🎤</div>
+        <div class="name">Audio Call</div>
+        <div class="status">Connected</div>
+      </div>
+    </div>
+    
+    <div class="call-controls">
+      <button class="btn btn-secondary" id="toggleAudioBtnDoctor" title="Mute/Unmute">🎤 Mute</button>
+      <button class="btn btn-danger" id="endCallBtnDoctor" title="End Call">📞 End</button>
+      <button class="btn btn-secondary" id="toggleVideoBtnDoctor" title="Video On/Off">📹 Video Off</button>
+    </div>
+  </div>
+</div>
+
+
+      </section>
+
+      <!-- Appointments Section -->
+      <section id="appointmentsSection" class="content-section">
+        <div class="header">
+          <h1>Appointment Requests</h1>
+          <p class="subtitle">Manage patient appointment requests</p>
+        </div>
+
+        <div class="appointment-filters">
+          <button class="filter-btn active" data-filter="pending">⏳ Pending</button>
+          <button class="filter-btn" data-filter="approved">✅ Approved</button>
+          <button class="filter-btn" data-filter="rejected">❌ Rejected</button>
+          <button class="filter-btn" data-filter="all">📋 All</button>
+        </div>
+
+        <div id="appointmentsList">
+          <p class="empty-state">Loading appointments...</p>
+        </div>
+      </section>
+
+      <!-- Resources Section -->
+      <section id="resourcesSection" class="content-section">
+        <div class="header">
+          <h1>Upload Resources</h1>
+          <p class="subtitle">Share audio, video, or articles with patients</p>
+        </div>
+
+        <div class="card">
+          <h3>Upload New Resource</h3>
+          <form id="resourceUploadForm">
+            <div class="form-group">
+              <label>Resource Type</label>
+              <select id="resourceType" required>
+                <option value="">Select type...</option>
+                <option value="audio">🎵 Audio</option>
+                <option value="video">🎬 Video</option>
+                <option value="article">📄 Article (PDF)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Title</label>
+              <input type="text" id="resourceTitle" placeholder="Resource title" required>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="resourceDescription" rows="3" placeholder="Brief description of the resource" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Upload File</label>
+              <input type="file" id="resourceFile" accept="audio/*,video/*,.pdf" required>
+              <small>Max file size: 50MB</small>
+            </div>
+            <button type="submit" class="btn btn-primary">📤 Upload Resource</button>
+            <p class="info-text">Note: Resources will be sent to admin for approval before being visible to patients.</p>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h3>My Uploaded Resources</h3>
+          <div id="myResourcesList">
+            <p class="empty-state">No resources uploaded yet</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Complaint Section -->
+      <section id="complaintSection" class="content-section">
+        <div class="header">
+          <h1>File a Complaint</h1>
+          <p class="subtitle">Report any issues or concerns</p>
+        </div>
+        <div class="card">
+          <form id="complaintForm">
+            <div class="form-group">
+              <label>Complaint Against</label>
+              <select id="complaintAgainst" required>
+                <option value="">Select</option>
+                <option value="patient">A Patient</option>
+                <option value="system">System/Technical Issue</option>
+                <option value="admin">Administration</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group" id="patientSelectGroup" style="display:none;">
+              <label>Select Patient</label>
+              <select id="complaintPatientId">
+                <option value="">Choose patient...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Subject</label>
+              <input type="text" id="complaintSubject" placeholder="Brief subject line" required>
+            </div>
+            <div class="form-group">
+              <label>Detailed Description</label>
+              <textarea id="complaintDescription" rows="6" placeholder="Please describe your complaint in detail..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Complaint</button>
+          </form>
+
+          <div style="margin-top: 30px;">
+            <h3>Your Previous Complaints</h3>
+            <div id="complaintsList"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+    let currentPatientId = null;
+  </script>
+  <script src="js/main.js"></script>
+  <script src="js/telecommunication.js"></script>
+  <script src="js/resource.js"></script>
+  <script src="js/doctor-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mental Health Management System</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="theme-toggle">
+    <button id="themeToggle">🌙</button>
+  </div>
+
+  <div class="container">
+    <!-- Login Section -->
+    <div id="loginSection" class="auth-section active">
+      <div class="auth-card">
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Sign in to continue</p>
+        
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Role</label>
+            <select id="loginRole" required>
+              <option value="">Select Role</option>
+              <option value="patient">Patient</option>
+              <option value="doctor">Doctor</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" required>
+          </div>
+          
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        
+        <p class="toggle-auth">Don't have an account? <a href="#" id="showRegister">Register here</a></p>
+      </div>
+    </div>
+
+    <!-- Registration Section -->
+    <div id="registerSection" class="auth-section">
+      <div class="auth-card">
+        <h1>Create Account</h1>
+        <p class="subtitle">Choose your role to begin</p>
+        
+        <div id="roleSelection">
+          <div class="role-card" data-role="patient">
+            <h3>Patient</h3>
+            <p>Get mental health support</p>
+          </div>
+          <div class="role-card" data-role="doctor">
+            <h3>Doctor</h3>
+            <p>Provide counseling services</p>
+          </div>
+          <div class="role-card" data-role="admin">
+            <h3>Admin</h3>
+            <p>Manage the system</p>
+          </div>
+        </div>
+
+        <!-- Patient Registration -->
+        <div id="patientRegister" class="register-form" style="display:none;">
+          <div class="steps">
+            <div class="step active" data-step="1">1</div>
+            <div class="step" data-step="2">2</div>
+            <div class="step" data-step="3">3</div>
+          </div>
+
+          <!-- Step 1: Basic Info -->
+          <form id="patientStep1" class="step-form active">
+            <h2>Basic Information</h2>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="patientName" required>
+              </div>
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" id="patientDob" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Gender</label>
+                <select id="patientGender" required>
+                  <option value="">Select</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="patientPhone" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Address</label>
+              <textarea id="patientAddress" rows="2" required></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="patientEmail" required>
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="patientPassword" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Next</button>
+          </form>
+
+          <!-- Step 2: Profile Photo -->
+          <form id="patientStep2" class="step-form">
+            <h2>Upload Profile Photo</h2>
+            <div class="upload-area" onclick="document.getElementById('patientPhoto').click()">
+              <input type="file" id="patientPhoto" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;" required>
+              <div class="upload-placeholder">
+                <p>📸 Click to upload or drag and drop</p>
+                <p style="font-size: 12px; color: var(--text-secondary);">JPG, JPEG, PNG or GIF (Max 5MB)</p>
+                <img id="photoPreview" style="display:none; max-width:200px; margin-top:10px; border-radius: 10px;">
+              </div>
+            </div>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
+              <button type="submit" class="btn btn-primary">Next</button>
+            </div>
+          </form>
+
+          <!-- Step 3: Assessment -->
+          <form id="patientStep3" class="step-form">
+            <h2>Stress Assessment</h2>
+            <div class="language-toggle">
+              <button type="button" class="lang-btn active" data-lang="en">English</button>
+              <button type="button" class="lang-btn" data-lang="ta">தமிழ்</button>
+            </div>
+            
+            <div id="assessmentQuestions">
+              <!-- Questions will be loaded dynamically -->
+            </div>
+
+            <h3>Select Your Doctor</h3>
+            <div id="doctorsList"></div>
+
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
+              <button type="submit" class="btn btn-primary">Complete Registration</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Doctor Registration -->
+        <div id="doctorRegister" class="register-form" style="display:none;">
+          <div class="steps">
+            <div class="step active" data-step="1">1</div>
+            <div class="step" data-step="2">2</div>
+          </div>
+
+          <!-- Step 1: Basic Info -->
+          <form id="doctorStep1" class="step-form active">
+            <h2>Doctor Information</h2>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="doctorName" required>
+              </div>
+              <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" id="doctorSpec" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" id="doctorDob" required>
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="doctorPhone" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Time Slot</label>
+              <input type="text" id="doctorTimeSlot" placeholder="e.g., 9 AM - 5 PM" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="doctorEmail" required>
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="doctorPassword" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Next</button>
+          </form>
+
+          <!-- Step 2: Documents -->
+          <form id="doctorStep2" class="step-form">
+            <h2>Upload Documents</h2>
+            <div class="form-group">
+              <label>Profile Photo</label>
+              <div class="upload-area" onclick="document.getElementById('doctorPhoto').click()" style="padding: 20px;">
+                <input type="file" id="doctorPhoto" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;" required>
+                <p>📸 Click to upload profile photo</p>
+                <p style="font-size: 12px; color: var(--text-secondary);">JPG, JPEG, PNG or GIF (Max 5MB)</p>
+                <img id="doctorPhotoPreview" style="display:none; max-width:150px; margin-top:10px; border-radius: 10px;">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Doctor Proof (Certificate/License)</label>
+              <div class="upload-area" onclick="document.getElementById('doctorProof').click()" style="padding: 20px;">
+                <input type="file" id="doctorProof" accept=".pdf,image/jpeg,image/jpg,image/png" style="display: none;" required>
+                <p>📄 Click to upload certificate/license</p>
+                <p style="font-size: 12px; color: var(--text-secondary);">PDF, JPG, JPEG, or PNG (Max 10MB)</p>
+                <div id="doctorProofName" style="margin-top: 10px; color: var(--success-color); display: none;"></div>
+              </div>
+            </div>
+            <p class="info-text">Your registration will be sent to admin for approval.</p>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
+              <button type="submit" class="btn btn-primary">Submit Request</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Admin Registration -->
+        <div id="adminRegister" class="register-form" style="display:none;">
+          <div class="steps">
+            <div class="step active" data-step="1">1</div>
+            <div class="step" data-step="2">2</div>
+            <div class="step" data-step="3">3</div>
+          </div>
+
+          <!-- Step 1: Basic Info -->
+          <form id="adminStep1" class="step-form active">
+            <h2>Admin Information</h2>
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="adminName" required>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="adminEmail" required>
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <input type="password" id="adminPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Next</button>
+          </form>
+
+          <!-- Step 2: Profile Photo -->
+          <form id="adminStep2" class="step-form">
+            <h2>Upload Profile Photo</h2>
+            <div class="upload-area" onclick="document.getElementById('adminPhoto').click()">
+              <input type="file" id="adminPhoto" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;" required>
+              <div class="upload-placeholder">
+                <p>📸 Click to upload or drag and drop</p>
+                <p style="font-size: 12px; color: var(--text-secondary);">JPG, JPEG, PNG or GIF (Max 5MB)</p>
+                <img id="adminPhotoPreview" style="display:none; max-width:200px; margin-top:10px; border-radius: 10px;">
+              </div>
+            </div>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
+              <button type="submit" class="btn btn-primary">Next</button>
+            </div>
+          </form>
+
+          <!-- Step 3: Secret Key -->
+          <form id="adminStep3" class="step-form">
+            <h2>Enter Admin Secret Key</h2>
+            <div class="form-group">
+              <label>Secret Key</label>
+              <input type="password" id="adminSecret" required>
+              <p class="info-text">Contact system administrator for the secret key.</p>
+            </div>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
+              <button type="submit" class="btn btn-primary">Complete Registration</button>
+            </div>
+          </form>
+        </div>
+
+        <p class="toggle-auth">Already have an account? <a href="#" id="showLogin">Login here</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

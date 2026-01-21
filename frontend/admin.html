@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Mental Health System</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="theme-toggle">
+    <button id="themeToggle">🌙</button>
+  </div>
+
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="" alt="Profile" class="profile-photo-small" id="profilePhoto">
+        <h3 id="userName">Admin</h3>
+        <p style="font-size: 12px; color: var(--text-secondary);">System Administrator</p>
+      </div>
+      
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-section="overview">📊 Overview</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="doctor-requests">👨‍⚕️ Doctor Requests</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="resource-approvals">📚 Resource Approvals</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="complaints">⚠️ Complaints</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="users">👥 All Users</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="statistics">📈 Statistics</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" id="logoutBtn">🚪 Logout</a>
+        </li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <!-- Overview Section -->
+      <section id="overviewSection" class="content-section active">
+        <div class="header">
+          <h1>Admin Dashboard 🏢️</h1>
+          <p class="subtitle">System Overview and Management</p>
+        </div>
+        <div class="cards-grid">
+          <div class="card stat-card">
+            <div class="stat-icon">👥</div>
+            <h3>Total Patients</h3>
+            <p class="stat-number" id="totalPatients">0</p>
+            <small>registered patients</small>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">👨‍⚕️</div>
+            <h3>Total Doctors</h3>
+            <p class="stat-number" id="totalDoctors">0</p>
+            <small>approved doctors</small>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">⏳</div>
+            <h3>Pending Requests</h3>
+            <p class="stat-number" id="pendingRequests">0</p>
+            <small>awaiting approval</small>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon">⚠️</div>
+            <h3>Open Complaints</h3>
+            <p class="stat-number" id="openComplaints">0</p>
+            <small>need attention</small>
+          </div>
+        </div>
+
+        <div class="cards-grid" style="margin-top: 20px;">
+          <div class="card">
+            <h3>Recent Activity</h3>
+            <div id="recentActivity">
+              <p class="empty-state">No recent activity</p>
+            </div>
+          </div>
+          <div class="card">
+            <h3>System Status</h3>
+            <div class="system-status">
+              <div class="status-item">
+                <span>Server Status</span>
+                <span class="status-badge success">🟢 Online</span>
+              </div>
+              <div class="status-item">
+                <span>Database</span>
+                <span class="status-badge success">🟢 Connected</span>
+              </div>
+              <div class="status-item">
+                <span>Storage</span>
+                <span class="status-badge success">🟢 Available</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h3>Quick Actions</h3>
+          <div class="quick-actions">
+            <button class="btn btn-primary" onclick="showSection('doctor-requests')">Review Doctor Requests</button>
+            <button class="btn btn-primary" onclick="showSection('resource-approvals')">Approve Resources</button>
+            <button class="btn btn-primary" onclick="showSection('complaints')">View Complaints</button>
+            <button class="btn btn-primary" onclick="showSection('statistics')">View Statistics</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Doctor Requests Section -->
+      <section id="doctor-requestsSection" class="content-section">
+        <div class="header">
+          <h1>Doctor Registration Requests</h1>
+          <p class="subtitle">Review and approve doctor applications</p>
+        </div>
+        <div id="doctorRequestsList">
+          <p class="empty-state">Loading requests...</p>
+        </div>
+      </section>
+
+      <!-- Resource Approvals Section -->
+      <section id="resource-approvalsSection" class="content-section">
+        <div class="header">
+          <h1>Resource Approval Queue</h1>
+          <p class="subtitle">Review and approve resources uploaded by doctors</p>
+        </div>
+
+        <div class="resource-filters">
+          <button class="filter-btn active" data-filter="all">📂 All</button>
+          <button class="filter-btn" data-filter="audio">🎵 Audio</button>
+          <button class="filter-btn" data-filter="video">🎬 Video</button>
+          <button class="filter-btn" data-filter="article">📄 Articles</button>
+        </div>
+
+        <div id="resourceApprovalsList">
+          <p class="empty-state">Loading resources...</p>
+        </div>
+      </section>
+
+      <!-- Complaints Section -->
+      <section id="complaintsSection" class="content-section">
+        <div class="header">
+          <h1>Complaint Management</h1>
+          <p class="subtitle">Review and manage user complaints</p>
+        </div>
+
+        <div class="complaint-filters">
+          <button class="filter-btn active" data-filter="all">📛 All</button>
+          <button class="filter-btn" data-filter="patient">👤 From Patients</button>
+          <button class="filter-btn" data-filter="doctor">👨‍⚕️ From Doctors</button>
+          <button class="filter-btn" data-filter="pending">⏳ Pending</button>
+          <button class="filter-btn" data-filter="resolved">✅ Resolved</button>
+        </div>
+
+        <div id="complaintsList">
+          <p class="empty-state">Loading complaints...</p>
+        </div>
+      </section>
+
+      <!-- All Users Section -->
+      <section id="usersSection" class="content-section">
+        <div class="header">
+          <h1>User Management</h1>
+          <p class="subtitle">View and manage all system users</p>
+        </div>
+
+        <div class="user-type-filters">
+          <button class="filter-btn active" data-filter="patients">👤 Patients</button>
+          <button class="filter-btn" data-filter="doctors">👨‍⚕️ Doctors</button>
+        </div>
+
+        <div id="usersList">
+          <p class="empty-state">Loading users...</p>
+        </div>
+      </section>
+
+      <!-- Statistics Section -->
+      <section id="statisticsSection" class="content-section">
+        <div class="header">
+          <h1>System Statistics</h1>
+          <p class="subtitle">Comprehensive system analytics</p>
+        </div>
+
+        <div class="cards-grid">
+          <div class="card">
+            <h3>User Registration Trends</h3>
+            <canvas id="registrationChart" style="max-height: 250px;"></canvas>
+          </div>
+          <div class="card">
+            <h3>Appointment Statistics</h3>
+            <canvas id="appointmentChart" style="max-height: 250px;"></canvas>
+          </div>
+        </div>
+
+        <div class="cards-grid" style="margin-top: 20px;">
+          <div class="card">
+            <h3>Resource Distribution</h3>
+            <canvas id="resourceChart" style="max-height: 250px;"></canvas>
+          </div>
+          <div class="card">
+            <h3>System Usage</h3>
+            <div class="usage-stats">
+              <div class="usage-item">
+                <span>Total Sessions Today</span>
+                <span class="usage-value" id="totalSessions">0</span>
+              </div>
+              <div class="usage-item">
+                <span>Messages Sent</span>
+                <span class="usage-value" id="totalMessages">0</span>
+              </div>
+              <div class="usage-item">
+                <span>Video Calls</span>
+                <span class="usage-value" id="totalCalls">0</span>
+              </div>
+              <div class="usage-item">
+                <span>Resources Viewed</span>
+                <span class="usage-value" id="resourceViews">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h3>Monthly Overview</h3>
+          <div class="monthly-stats">
+            <div class="stat-row">
+              <span>New Patient Registrations</span>
+              <span id="monthlyPatients">0</span>
+            </div>
+            <div class="stat-row">
+              <span>New Doctor Approvals</span>
+              <span id="monthlyDoctors">0</span>
+            </div>
+            <div class="stat-row">
+              <span>Appointments Completed</span>
+              <span id="monthlyAppointments">0</span>
+            </div>
+            <div class="stat-row">
+              <span>Resources Added</span>
+              <span id="monthlyResources">0</span>
+            </div>
+            <div class="stat-row">
+              <span>Complaints Resolved</span>
+              <span id="monthlyComplaints">0</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Doctor Details Modal -->
+  <div id="doctorDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="document.getElementById('doctorDetailsModal').style.display='none'">&times;</span>
+      <h2>Doctor Details</h2>
+      <div id="doctorDetailsContent"></div>
+      <div class="btn-group" style="margin-top: 20px;">
+        <button class="btn btn-success" onclick="approveDoctorFromModal()">✅ Approve</button>
+        <button class="btn btn-danger" onclick="rejectDoctorFromModal()">✗ Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resource Preview Modal -->
+  <div id="resourcePreviewModal" class="modal" style="display: none;">
+    <div class="modal-content resource-modal">
+      <span class="close" onclick="document.getElementById('resourcePreviewModal').style.display='none'">&times;</span>
+      <h2>Resource Preview</h2>
+      <div id="resourcePreviewContent"></div>
+      <div class="btn-group" style="margin-top: 20px;">
+        <button class="btn btn-success" onclick="approveResourceFromModal()">✅ Approve</button>
+        <button class="btn btn-danger" onclick="rejectResourceFromModal()">✗ Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaint Details Modal -->
+  <div id="complaintDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="document.getElementById('complaintDetailsModal').style.display='none'">&times;</span>
+      <h2>Complaint Details</h2>
+      <div id="complaintDetailsContent"></div>
+      <div class="btn-group" style="margin-top: 20px;">
+        <button class="btn btn-primary" onclick="markComplaintResolved()">Mark as Resolved</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('complaintDetailsModal').style.display='none'">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    // Global variables for admin dashboard
+    let currentDoctorId = null;
+    let currentResourceId = null;
+    let currentComplaintId = null;
+  </script>
+  <script src="js/main.js"></script>
+  <script src="js/admin-dashboard.js"></script>
+</body>
+</html>
