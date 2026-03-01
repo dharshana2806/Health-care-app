@@ -253,30 +253,13 @@ function displayMessage(message, isSent) {
   const time = new Date(message.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   
   if (message.messageType === 'voice') {
-    msgDiv.innerHTML = `
-      <div class="message-bubble">
-        <audio controls style="max-width: 280px; width: 100%;">
-          <source src="${message.content}" type="audio/wav">
-        </audio>
-        <div class="message-meta" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 5px; font-size: 11px;">
-          <span class="timestamp" style="color: rgba(0,0,0,0.45);">${time}</span>
-          ${isSent ? `<span class="status ${message.seen ? 'seen' : ''}" style="color: ${message.seen ? '#4fc3f7' : '#999'}; transition: all 0.3s ease; font-size: 16px;">✓✓</span>` : ''}
-        </div>
-      </div>
-    `;
+    msgDiv.innerHTML = buildVoiceBubble(message.content, time, isSent, message.seen);
   } else {
-    msgDiv.innerHTML = `
-      <div class="message-bubble">
-        <p style="margin: 0; word-wrap: break-word; line-height: 1.4;">${message.content}</p>
-        <div class="message-meta" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 5px; font-size: 11px;">
-          <span class="timestamp" style="color: rgba(0,0,0,0.45);">${time}</span>
-          ${isSent ? `<span class="status ${message.seen ? 'seen' : ''}" style="color: ${message.seen ? '#4fc3f7' : '#999'}; transition: all 0.3s ease; font-size: 16px;">✓✓</span>` : ''}
-        </div>
-      </div>
-    `;
+    msgDiv.innerHTML = buildTextBubble(message.content, time, isSent, message.seen);
   }
   
   container.appendChild(msgDiv);
+  initVoicePlayers(msgDiv);
   container.scrollTop = container.scrollHeight;
 }
 
@@ -294,31 +277,150 @@ function displayMessageDoctor(message, isSent) {
   const time = new Date(message.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   
   if (message.messageType === 'voice') {
-    msgDiv.innerHTML = `
-      <div class="message-bubble">
-        <audio controls style="max-width: 280px; width: 100%;">
-          <source src="${message.content}" type="audio/wav">
-        </audio>
-        <div class="message-meta" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 5px; font-size: 11px;">
-          <span class="timestamp" style="color: rgba(0,0,0,0.45);">${time}</span>
-          ${isSent ? `<span class="status ${message.seen ? 'seen' : ''}" style="color: ${message.seen ? '#4fc3f7' : '#999'}; transition: all 0.3s ease; font-size: 16px;">✓✓</span>` : ''}
-        </div>
-      </div>
-    `;
+    msgDiv.innerHTML = buildVoiceBubble(message.content, time, isSent, message.seen);
   } else {
-    msgDiv.innerHTML = `
-      <div class="message-bubble">
-        <p style="margin: 0; word-wrap: break-word; line-height: 1.4;">${message.content}</p>
-        <div class="message-meta" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 5px; font-size: 11px;">
-          <span class="timestamp" style="color: rgba(0,0,0,0.45);">${time}</span>
-          ${isSent ? `<span class="status ${message.seen ? 'seen' : ''}" style="color: ${message.seen ? '#4fc3f7' : '#999'}; transition: all 0.3s ease; font-size: 16px;">✓✓</span>` : ''}
-        </div>
-      </div>
-    `;
+    msgDiv.innerHTML = buildTextBubble(message.content, time, isSent, message.seen);
   }
   
   container.appendChild(msgDiv);
+  initVoicePlayers(msgDiv);
   container.scrollTop = container.scrollHeight;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   CUSTOM VOICE MESSAGE PLAYER
+   Replaces native <audio controls> to avoid browser's black/dark chrome.
+
+   Layout (medium-size card):
+   ┌──────────────────────────────────────────────────────────┐
+   │  [▶]  ░░░░░▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  0:00  │
+   │  🎙 Voice Message                           10:30 AM ✓✓  │
+   └──────────────────────────────────────────────────────────┘
+   ───────────────────────────────────────────────────────────────────────── */
+
+let _voicePlayerCounter = 0;
+
+function buildVoiceBubble(src, time, isSent, seen) {
+  const uid = 'vp_' + (++_voicePlayerCounter);
+  const seenColor = seen ? '#4fc3f7' : 'rgba(255,255,255,0.6)';
+
+  return `
+    <div class="message-bubble voice-bubble" data-src="${src}" data-uid="${uid}">
+      <div class="vp-row">
+        <button class="vp-play-btn" id="${uid}_btn" aria-label="Play voice message">
+          <svg class="vp-icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <svg class="vp-icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display:none;">
+            <line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/>
+          </svg>
+        </button>
+        <div class="vp-track">
+          <div class="vp-progress-wrap" id="${uid}_wrap">
+            <div class="vp-progress-fill" id="${uid}_fill" style="width:0%"></div>
+          </div>
+          <div class="vp-wave" id="${uid}_wave">
+            ${Array.from({length:24},(_,i)=>`<span class="vp-bar" style="height:${6+Math.round(Math.sin(i*0.72)*10+Math.random()*8)}px"></span>`).join('')}
+          </div>
+        </div>
+        <span class="vp-duration" id="${uid}_dur">0:00</span>
+      </div>
+      <div class="vp-meta">
+        <span class="vp-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+          Voice message
+        </span>
+        <span class="vp-time-row">
+          <span class="timestamp">${time}</span>
+          ${isSent ? `<span class="status${seen?' seen':''}" style="color:${seenColor};">✓✓</span>` : ''}
+        </span>
+      </div>
+    </div>`;
+}
+
+function buildTextBubble(content, time, isSent, seen) {
+  const seenColor = seen ? '#4fc3f7' : 'rgba(255,255,255,0.5)';
+  return `
+    <div class="message-bubble">
+      <p style="margin:0;word-wrap:break-word;line-height:1.5;">${content}</p>
+      <div class="message-meta" style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:5px;font-size:11px;">
+        <span class="timestamp">${time}</span>
+        ${isSent ? `<span class="status${seen?' seen':''}" style="color:${seenColor};transition:all 0.3s ease;">✓✓</span>` : ''}
+      </div>
+    </div>`;
+}
+
+/* Wire up play/pause + progress for every .voice-bubble inside `container` */
+function initVoicePlayers(root) {
+  root.querySelectorAll('.voice-bubble').forEach(bubble => {
+    const src   = bubble.dataset.src;
+    const uid   = bubble.dataset.uid;
+    const btn   = bubble.querySelector(`#${uid}_btn`);
+    const fill  = bubble.querySelector(`#${uid}_fill`);
+    const dur   = bubble.querySelector(`#${uid}_dur`);
+    const wave  = bubble.querySelector(`#${uid}_wave`);
+    const iconPlay  = btn.querySelector('.vp-icon-play');
+    const iconPause = btn.querySelector('.vp-icon-pause');
+    if (!btn || !src) return;
+
+    const audio = new Audio(src);
+
+    function fmt(s) {
+      const m = Math.floor(s / 60);
+      const ss = Math.floor(s % 60).toString().padStart(2,'0');
+      return `${m}:${ss}`;
+    }
+
+    audio.addEventListener('loadedmetadata', () => {
+      if (isFinite(audio.duration)) dur.textContent = fmt(audio.duration);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      if (!audio.duration) return;
+      const pct = (audio.currentTime / audio.duration) * 100;
+      fill.style.width = pct + '%';
+      dur.textContent  = fmt(audio.currentTime);
+    });
+
+    audio.addEventListener('ended', () => {
+      fill.style.width = '0%';
+      dur.textContent  = isFinite(audio.duration) ? fmt(audio.duration) : '0:00';
+      iconPlay.style.display  = '';
+      iconPause.style.display = 'none';
+      wave.classList.remove('playing');
+    });
+
+    btn.addEventListener('click', () => {
+      if (audio.paused) {
+        // Pause any other playing audio
+        document.querySelectorAll('.voice-bubble audio').forEach(a => { if (a !== audio) a.pause(); });
+        document.querySelectorAll('.vp-wave.playing').forEach(w => w.classList.remove('playing'));
+        document.querySelectorAll('.vp-icon-play').forEach(ic => ic.style.display = '');
+        document.querySelectorAll('.vp-icon-pause').forEach(ic => ic.style.display = 'none');
+
+        audio.play();
+        iconPlay.style.display  = 'none';
+        iconPause.style.display = '';
+        wave.classList.add('playing');
+      } else {
+        audio.pause();
+        iconPlay.style.display  = '';
+        iconPause.style.display = 'none';
+        wave.classList.remove('playing');
+      }
+    });
+
+    // Click on progress bar to seek
+    const wrap = bubble.querySelector(`#${uid}_wrap`);
+    if (wrap) {
+      wrap.addEventListener('click', e => {
+        if (!audio.duration) return;
+        const rect = wrap.getBoundingClientRect();
+        const pct  = (e.clientX - rect.left) / rect.width;
+        audio.currentTime = pct * audio.duration;
+      });
+    }
+  });
 }
 
 function updateMessageSeenStatus(messageId) {
@@ -407,7 +509,7 @@ async function toggleVoiceRecording() {
         stream.getTracks().forEach(track => track.stop());
       };
       mediaRecorder.start();
-      button.textContent = '⏹️';
+      
       button.classList.add('recording');
     } catch (error) {
       console.error('❌ Mic error:', error);
@@ -415,7 +517,7 @@ async function toggleVoiceRecording() {
     }
   } else {
     mediaRecorder.stop();
-    button.textContent = '🎤';
+    
     button.classList.remove('recording');
   }
 }
@@ -434,7 +536,7 @@ async function toggleVoiceRecordingDoctor() {
         stream.getTracks().forEach(track => track.stop());
       };
       mediaRecorder.start();
-      button.textContent = '⏹️';
+      
       button.classList.add('recording');
     } catch (error) {
       console.error('❌ Mic error:', error);
@@ -442,7 +544,7 @@ async function toggleVoiceRecordingDoctor() {
     }
   } else {
     mediaRecorder.stop();
-    button.textContent = '🎤';
+    
     button.classList.remove('recording');
   }
 }
@@ -963,7 +1065,7 @@ function toggleAudio() {
     audioTrack.enabled = !audioTrack.enabled;
     const btn = currentUserRole === 'patient' ? document.getElementById('toggleAudioBtn') : document.getElementById('toggleAudioBtnDoctor');
     if (btn) {
-      btn.textContent = audioTrack.enabled ? '🎤 Mute' : '🎤 Unmute';
+      
       btn.style.background = audioTrack.enabled ? 'rgba(255,255,255,0.2)' : '#dc3545';
     }
   }

@@ -1,448 +1,329 @@
-// Doctor Dashboard JavaScript - FINAL COMPLETE FIX
+// ─────────────────────────────────────────────────────────────
+//  Doctor Dashboard — matches professional doctordashboard.html
+// ─────────────────────────────────────────────────────────────
+
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
-  loadTheme();
+  applyTheme();
   loadDoctorProfile();
   loadOverviewData();
   setupNavigation();
   setupEventListeners();
 });
 
+/* ═══════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════ */
 function checkAuth() {
   const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user  = JSON.parse(localStorage.getItem('user') || '{}');
   if (!token || user.role !== 'doctor') {
     window.location.href = 'index.html';
   }
 }
 
-function loadTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-  
-  document.getElementById('themeToggle').addEventListener('click', () => {
-    const curr = document.documentElement.getAttribute('data-theme');
-    const newTheme = curr === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    document.getElementById('themeToggle').textContent = newTheme === 'dark' ? '☀️' : '🌙';
-    localStorage.setItem('theme', newTheme);
-  });
+
+/* ════════════════════════════════════════════
+   THEME — managed by main.js (single source of truth)
+   This function only reads localStorage to set data-theme
+   before paint. The click listener is wired by main.js.
+═════════════════════════════════════════════ */
+function applyTheme() {
+  const saved = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
 }
 
+/* ═══════════════════════════════════════════
+   PROFILE
+═══════════════════════════════════════════ */
 async function loadDoctorProfile() {
   const token = localStorage.getItem('token');
   try {
-    const response = await fetch(`${API_URL}/doctor/profile`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const doctor = await response.json();
-    
-    document.getElementById('userName').textContent = doctor.name;
-    document.getElementById('userSpec').textContent = doctor.specialization;
-    
-    let photoPath = 'https://via.placeholder.com/60';
+    const res    = await fetch(`${API_URL}/doctor/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const doctor = await res.json();
+
+    document.getElementById('userName').textContent = doctor.name   || 'Doctor';
+    document.getElementById('userSpec').textContent = doctor.specialization || 'Specialist';
+
+    let photo = 'https://via.placeholder.com/60';
     if (doctor.profilePhoto) {
-      let cleanPath = doctor.profilePhoto.replace(/\\/g, '/');
-      cleanPath = cleanPath.replace(/backend\/uploads\//g, '');
-      photoPath = `/backend/uploads/${cleanPath}`;
+      let p = doctor.profilePhoto.replace(/\\/g, '/').replace(/backend\/uploads\//g, '');
+      photo = `/backend/uploads/${p}`;
     }
-    
-    const profileImg = document.getElementById('profilePhoto');
-    profileImg.src = photoPath;
-    profileImg.onerror = function() {
-      this.src = 'https://via.placeholder.com/60';
-    };
-  } catch (error) {
-    console.error('Error:', error);
-  }
+    const img = document.getElementById('profilePhoto');
+    img.src = photo;
+    img.onerror = () => { img.src = 'https://via.placeholder.com/60'; };
+
+    // Personalise greeting
+    const h1 = document.querySelector('#overviewSection .page-header h1');
+    if (h1) h1.textContent = `Good day, Dr. ${(doctor.name || '').split(' ')[0]}`;
+  } catch (e) { console.error('Profile error:', e); }
 }
 
+/* ═══════════════════════════════════════════
+   OVERVIEW
+═══════════════════════════════════════════ */
 async function loadOverviewData() {
   const token = localStorage.getItem('token');
   try {
-    const [patientsRes, appointmentsRes] = await Promise.all([
-      fetch(`${API_URL}/doctor/patients`, { headers: { 'Authorization': `Bearer ${token}` }}),
-      fetch(`${API_URL}/doctor/appointments`, { headers: { 'Authorization': `Bearer ${token}` }})
+    const [pRes, aRes] = await Promise.all([
+      fetch(`${API_URL}/doctor/patients`,     { headers: { 'Authorization': `Bearer ${token}` } }),
+      fetch(`${API_URL}/doctor/appointments`, { headers: { 'Authorization': `Bearer ${token}` } }),
     ]);
-    
-    const patients = await patientsRes.json();
-    const appointments = await appointmentsRes.json();
-    
-    document.getElementById('totalPatients').textContent = patients.length;
-    document.getElementById('pendingAppointments').textContent = 
-      appointments.filter(a => a.status === 'pending').length;
-    document.getElementById('unreadMessages').textContent = '0';
-    
-    let highRiskCount = 0;
-    for (const patient of patients) {
+    const patients     = await pRes.json();
+    const appointments = await aRes.json();
+
+    document.getElementById('totalPatients').textContent       = patients.length;
+    document.getElementById('pendingAppointments').textContent = appointments.filter(a => a.status === 'pending').length;
+    document.getElementById('unreadMessages').textContent      = '0';
+
+    let highRisk = 0;
+    for (const p of patients) {
       try {
-        const wellnessRes = await fetch(`${API_URL}/doctor/patient/${patient._id}/history`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const wellness = await wellnessRes.json();
+        const wRes    = await fetch(`${API_URL}/doctor/patient/${p._id}/history`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const wellness = await wRes.json();
         if (wellness.length > 0) {
-          const recentStress = wellness.slice(0, 3);
-          const avgStress = recentStress.reduce((sum, w) => sum + w.stressLevel, 0) / recentStress.length;
-          if (avgStress > 7) highRiskCount++;
+          const recent = wellness.slice(0, 3);
+          const avg    = recent.reduce((s, w) => s + w.stressLevel, 0) / recent.length;
+          if (avg > 7) highRisk++;
         }
-      } catch (e) {
-        console.log('Could not load wellness for patient');
-      }
+      } catch (_) {}
     }
-    document.getElementById('highRiskPatients').textContent = highRiskCount;
-  } catch (error) {
-    console.error('Error:', error);
-  }
+    document.getElementById('highRiskPatients').textContent = highRisk;
+  } catch (e) { console.error('Overview error:', e); }
 }
 
+/* ═══════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════ */
 function setupNavigation() {
   document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
+    link.addEventListener('click', e => {
       e.preventDefault();
-      if (link.id === 'logoutBtn') {
-        logout();
-        return;
-      }
-      
+      if (link.id === 'logoutBtn') { logout(); return; }
       const section = link.dataset.section;
+      if (!section) return;
       showSection(section);
-      
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       link.classList.add('active');
+      // Close mobile sidebar
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
     });
   });
 }
 
 function showSection(section) {
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.getElementById(`${section}Section`).classList.add('active');
-  
-  if (section === 'patients') loadPatients();
+  const target = document.getElementById(`${section}Section`);
+  if (target) target.classList.add('active');
+
+  if (section === 'patients')        loadPatients();
   if (section === 'patient-history') loadPatientHistorySelect();
-  if (section === 'sentiment') loadSentimentTrends();
-  if (section === 'appointments') loadAppointments();
-  if (section === 'resources') loadMyResources();
-  if (section === 'complaint') loadComplaintPatients();
-  if (section === 'telecounseling') initializeTelecounseling();
+  if (section === 'sentiment')       loadSentimentTrends();
+  if (section === 'appointments')    loadAppointments();
+  if (section === 'resources')       loadMyResources();
+  if (section === 'complaint')       loadComplaintPatients();
+  if (section === 'telecounseling')  initializeTelecounseling();
 }
 
+/* ═══════════════════════════════════════════
+   EVENT LISTENERS
+═══════════════════════════════════════════ */
 function setupEventListeners() {
-  const resourceForm = document.getElementById('resourceUploadForm');
-  if (resourceForm) {
-    resourceForm.addEventListener('submit', uploadResource);
-  }
-  
-  const complaintForm = document.getElementById('complaintForm');
-  if (complaintForm) {
-    complaintForm.addEventListener('submit', submitComplaint);
-  }
-  
-  const complaintAgainst = document.getElementById('complaintAgainst');
-  if (complaintAgainst) {
-    complaintAgainst.addEventListener('change', (e) => {
-      const group = document.getElementById('patientSelectGroup');
-      if (group) {
-        group.style.display = e.target.value === 'patient' ? 'block' : 'none';
-      }
-    });
-  }
-  
+  document.getElementById('resourceUploadForm')?.addEventListener('submit', uploadResource);
+  document.getElementById('complaintForm')?.addEventListener('submit', submitComplaint);
+
+  document.getElementById('complaintAgainst')?.addEventListener('change', e => {
+    document.getElementById('patientSelectGroup').style.display =
+      e.target.value === 'patient' ? 'block' : 'none';
+  });
+
+  // Appointment filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const parentSection = this.closest('.content-section');
-      if (parentSection) {
-        parentSection.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      }
+    btn.addEventListener('click', function () {
+      this.closest('.filter-bar').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       this.classList.add('active');
-      const filter = this.dataset.filter;
-      if (this.closest('#appointmentsSection')) {
-        filterAppointments(filter);
-      }
+      filterAppointments(this.dataset.filter);
     });
   });
 }
 
-async function loadPatients() {
-  const token = localStorage.getItem('token');
-  try {
-    const response = await fetch(`${API_URL}/doctor/patients`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const patients = await response.json();
-    
-    const container = document.getElementById('patientsList');
-    if (patients.length === 0) {
-      container.innerHTML = '<p class="empty-state">No patients assigned yet</p>';
-      return;
-    }
-    
-    container.innerHTML = patients.map(patient => {
-      let photoPath = 'https://via.placeholder.com/80';
-      if (patient.profilePhoto) {
-        let cleanPath = patient.profilePhoto.replace(/\\/g, '/');
-        cleanPath = cleanPath.replace(/backend\/uploads\//g, '');
-        photoPath = `/backend/uploads/${cleanPath}`;
-      }
-      
-      return `
-      <div class="card patient-card" style="text-align: center; padding: 20px;">
-        <img src="${photoPath}" 
-             alt="${patient.name}" class="patient-photo" 
-             style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 15px; object-fit: cover; border: 3px solid var(--primary-color);"
-             onerror="this.src='https://via.placeholder.com/80'">
-        <h4>${patient.name}</h4>
-        <p style="color: var(--text-secondary); margin: 5px 0;">${patient.email}</p>
-        <p style="color: var(--text-secondary); margin: 5px 0;"><small>Phone: ${patient.phone}</small></p>
-        <button class="btn btn-primary btn-sm" style="margin-top: 10px;"
-                onclick="viewPatientDetails('${patient._id}')">View Details</button>
-      </div>
-    `}).join('');
-  } catch (error) {
-    console.error('Error:', error);
+/* ═══════════════════════════════════════════
+   GLOBAL HELPERS (called from HTML onclick attrs)
+═══════════════════════════════════════════ */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+function selectResourceType(type, el) {
+  document.querySelectorAll('.resource-type-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('resourceType').value = type;
+  const acceptMap = { audio: 'audio/*', video: 'video/*', article: '.pdf,application/pdf' };
+  document.getElementById('resourceFile').accept = acceptMap[type] || '*';
+  document.getElementById('resourceFile').value = '';
+  document.getElementById('fileUploadArea').classList.remove('has-file');
+  document.getElementById('fileUploadName').textContent = '';
+}
+
+function handleFileSelect(input) {
+  const area   = document.getElementById('fileUploadArea');
+  const nameEl = document.getElementById('fileUploadName');
+  if (input.files && input.files[0]) {
+    area.classList.add('has-file');
+    nameEl.textContent = input.files[0].name;
+  } else {
+    area.classList.remove('has-file');
+    nameEl.textContent = '';
   }
 }
 
+/* ═══════════════════════════════════════════
+   MY PATIENTS
+═══════════════════════════════════════════ */
+async function loadPatients() {
+  const token = localStorage.getItem('token');
+  const container = document.getElementById('patientsList');
+  container.innerHTML = emptyStateHTML('loading');
+
+  try {
+    const res      = await fetch(`${API_URL}/doctor/patients`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const patients = await res.json();
+
+    if (!patients.length) {
+      container.innerHTML = emptyStateHTML('no-patients');
+      return;
+    }
+
+    container.className = 'patients-grid';
+    container.innerHTML = patients.map(p => {
+      const photo = getPhotoPath(p.profilePhoto, 80);
+      return `
+        <div class="patient-card" onclick="viewPatientDetails('${p._id}')">
+          <img src="${photo}" alt="${p.name}" class="patient-card-photo"
+               onerror="this.src='https://via.placeholder.com/80'">
+          <h4>${p.name}</h4>
+          <p>${p.email}</p>
+          <p>${p.phone || '—'}</p>
+          <button class="btn btn-primary btn-sm" style="margin-top:4px;">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            View Details
+          </button>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = errorStateHTML('Failed to load patients');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PATIENT DETAIL MODAL
+═══════════════════════════════════════════ */
 async function viewPatientDetails(patientId) {
   const token = localStorage.getItem('token');
   try {
-    const response = await fetch(`${API_URL}/doctor/patients`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const patients = await response.json();
-    const patient = patients.find(p => p._id === patientId);
-    
+    const [pRes, wRes] = await Promise.all([
+      fetch(`${API_URL}/doctor/patients`,                        { headers: { 'Authorization': `Bearer ${token}` } }),
+      fetch(`${API_URL}/doctor/patient/${patientId}/history`,   { headers: { 'Authorization': `Bearer ${token}` } }),
+    ]);
+    const patients = await pRes.json();
+    const wellness = await wRes.json();
+    const patient  = patients.find(p => p._id === patientId);
     if (!patient) return;
-    
-    const wellnessRes = await fetch(`${API_URL}/doctor/patient/${patientId}/history`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const wellness = await wellnessRes.json();
-    
-    const avgStress = wellness.length > 0 
-      ? (wellness.reduce((sum, w) => sum + w.stressLevel, 0) / wellness.length).toFixed(1)
-      : 'N/A';
-    
-    const avgSleep = wellness.length > 0
-      ? (wellness.reduce((sum, w) => sum + w.sleepHours, 0) / wellness.length).toFixed(1)
-      : 'N/A';
-    
-    let photoPath = 'https://via.placeholder.com/120';
-    if (patient.profilePhoto) {
-      let cleanPath = patient.profilePhoto.replace(/\\/g, '/');
-      cleanPath = cleanPath.replace(/backend\/uploads\//g, '');
-      photoPath = `/backend/uploads/${cleanPath}`;
-    }
-    
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
-    modal.innerHTML = `
-      <div class="modal-content" style="max-width: 700px;">
-        <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
-        <h2>Patient Details</h2>
-        <div style="text-align: center; margin: 20px 0;">
-          <img src="${photoPath}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color);"
-               onerror="this.src='https://via.placeholder.com/120'">
+
+    const avgStress = wellness.length
+      ? (wellness.reduce((s, w) => s + w.stressLevel, 0) / wellness.length).toFixed(1) : 'N/A';
+    const avgSleep  = wellness.length
+      ? (wellness.reduce((s, w) => s + w.sleepHours,  0) / wellness.length).toFixed(1) : 'N/A';
+
+    const photo = getPhotoPath(patient.profilePhoto, 120);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'patient-modal-overlay';
+    overlay.innerHTML = `
+      <div class="patient-modal">
+        <div class="patient-modal-header">
+          <h2>Patient Details</h2>
+          <button class="modal-close-btn" onclick="this.closest('.patient-modal-overlay').remove()">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-        <h3 style="text-align: center; margin-bottom: 20px;">${patient.name}</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
-          <div><strong>Email:</strong> ${patient.email}</div>
-          <div><strong>Phone:</strong> ${patient.phone}</div>
-          <div><strong>Gender:</strong> ${patient.gender || 'N/A'}</div>
-          <div><strong>DOB:</strong> ${patient.dob ? new Date(patient.dob).toLocaleDateString() : 'N/A'}</div>
-          <div><strong>Avg Stress:</strong> ${avgStress}/10</div>
-          <div><strong>Avg Sleep:</strong> ${avgSleep} hours</div>
-        </div>
-        <div style="margin-top: 20px;">
-          <strong>Address:</strong><br>
-          ${patient.address || 'Not provided'}
-        </div>
-        <div style="margin-top: 20px;">
-          <strong>Recent Wellness Entries:</strong> ${wellness.length} entries
-        </div>
-        <div style="text-align: center; margin-top: 20px;">
-          <button class="btn btn-primary" onclick="this.closest('.modal').remove()">Close</button>
+        <div class="patient-modal-body">
+          <img src="${photo}" alt="${patient.name}" class="patient-modal-avatar"
+               onerror="this.src='https://via.placeholder.com/100'">
+          <h3 style="text-align:center; font-family:'DM Serif Display',serif; font-size:20px; color:var(--text-primary); margin-bottom:4px;">${patient.name}</h3>
+          <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:20px;">${patient.email}</p>
+          <div class="patient-detail-grid">
+            <div class="patient-detail-item">
+              <p class="patient-detail-label">Phone</p>
+              <p class="patient-detail-value">${patient.phone || '—'}</p>
+            </div>
+            <div class="patient-detail-item">
+              <p class="patient-detail-label">Gender</p>
+              <p class="patient-detail-value">${patient.gender || '—'}</p>
+            </div>
+            <div class="patient-detail-item">
+              <p class="patient-detail-label">Date of Birth</p>
+              <p class="patient-detail-value">${patient.dob ? new Date(patient.dob).toLocaleDateString() : '—'}</p>
+            </div>
+            <div class="patient-detail-item">
+              <p class="patient-detail-label">Wellness Entries</p>
+              <p class="patient-detail-value">${wellness.length} records</p>
+            </div>
+            <div class="patient-detail-item">
+              <p class="patient-detail-label">Avg Stress Level</p>
+              <p class="patient-detail-value" style="color:${parseFloat(avgStress)>7?'var(--danger)':parseFloat(avgStress)>5?'var(--warning)':'var(--success)'};">${avgStress}/10</p>
+            </div>
+            <div class="patient-detail-item">
+              <p class="patient-detail-label">Avg Sleep</p>
+              <p class="patient-detail-value">${avgSleep} hrs/night</p>
+            </div>
+          </div>
+          ${patient.address ? `<div style="margin-top:16px; background:var(--bg-panel); border-radius:var(--radius-sm); padding:12px 14px;">
+            <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:4px;">Address</p>
+            <p style="font-size:14px; color:var(--text-primary);">${patient.address}</p>
+          </div>` : ''}
+          <div style="text-align:center; margin-top:22px;">
+            <button class="btn btn-primary" onclick="this.closest('.patient-modal-overlay').remove()">Close</button>
+          </div>
         </div>
       </div>
     `;
-    document.body.appendChild(modal);
-    
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.remove();
-    });
-  } catch (error) {
-    console.error('Error:', error);
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  } catch (e) {
+    console.error(e);
     showNotification('Error loading patient details', 'error');
   }
 }
 
-// FIXED: Initialize telecounseling and populate patient list
- // Also update initializeTelecounseling to make items clickable properly
-async function initializeTelecounseling() {
-  const token = localStorage.getItem('token');
-  const container = document.getElementById('chatPatientsList');
-  
-  if (!container) {
-    console.error('Chat patients list container not found');
-    return;
-  }
-  
-  container.innerHTML = '<p class="empty-state">Loading patients...</p>';
-  
-  try {
-    const response = await fetch(`${API_URL}/doctor/patients`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const patients = await response.json();
-    
-    console.log('Loaded patients for telecounseling:', patients.length);
-    
-    if (patients.length === 0) {
-      container.innerHTML = '<p class="empty-state">No patients assigned yet</p>';
-      return;
-    }
-    
-    container.innerHTML = patients.map(patient => {
-      let photoPath = 'https://via.placeholder.com/50';
-      if (patient.profilePhoto) {
-        let cleanPath = patient.profilePhoto.replace(/\\/g, '/');
-        cleanPath = cleanPath.replace(/backend\/uploads\//g, '');
-        photoPath = `/backend/uploads/${cleanPath}`;
-      }
-      
-      return `
-      <div class="chat-patient-item" 
-           data-patient-id="${patient._id}"
-           data-patient-name="${patient.name.replace(/"/g, '&quot;')}"
-           data-patient-photo="${photoPath}"
-           style="padding: 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.3s;">
-        <img src="${photoPath}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;"
-             onerror="this.src='https://via.placeholder.com/50'" alt="${patient.name}">
-        <div style="flex: 1;">
-          <h4 style="margin: 0; font-size: 14px; color: var(--text-primary);">${patient.name}</h4>
-          <small style="color: var(--text-secondary); font-size: 12px;">Click to start chat</small>
-        </div>
-      </div>
-    `}).join('');
-    
-    // Add click event listeners to patient items
-    document.querySelectorAll('.chat-patient-item').forEach(item => {
-      item.addEventListener('mouseenter', function() {
-        this.style.background = 'var(--bg-secondary)';
-      });
-      item.addEventListener('mouseleave', function() {
-        // Don't remove background if this is the selected item
-        if (this.dataset.patientId !== window.currentChatUser) {
-          this.style.background = 'transparent';
-        }
-      });
-      item.addEventListener('click', function() {
-        const patientId = this.dataset.patientId;
-        const patientName = this.dataset.patientName;
-        const patientPhoto = this.dataset.patientPhoto;
-        selectPatientChat(patientId, patientName, patientPhoto);
-      });
-    });
-  } catch (error) {
-    console.error('Error loading patients for chat:', error);
-    container.innerHTML = '<p class="empty-state" style="color: var(--danger-color);">Error loading patients</p>';
-  }
-}
-
-// Make sure to export the function
-if (typeof window !== 'undefined') {
-  window.selectPatientChat = selectPatientChat;
-  window.initializeTelecounseling = initializeTelecounseling;
-}
-
-// FIXED: Select patient for chat
-// Doctor Dashboard - Chat Selection Fix
-// Replace the selectPatientChat function in doctor-dashboard.js
-
-function selectPatientChat(patientId, patientName, patientPhoto) {
-  // Set global chat user in telecommunication.js
-  if (typeof window !== 'undefined') {
-    window.currentChatUser = patientId;
-  }
-  
-  console.log('Doctor selected patient for chat:', patientName, patientId);
-  
-  const chatHeader = document.getElementById('chatHeaderDoctor');
-  const chatInput = document.getElementById('chatInputDoctor');
-  const patientNameEl = document.getElementById('patientNameChat');
-  const patientPhotoEl = document.getElementById('patientPhotoChat');
-  const chatMessages = document.getElementById('chatMessagesDoctor');
-  
-  if (chatHeader) chatHeader.style.display = 'flex';
-  if (chatInput) chatInput.style.display = 'flex';
-  if (patientNameEl) patientNameEl.textContent = patientName;
-  if (patientPhotoEl) {
-    patientPhotoEl.src = patientPhoto;
-    patientPhotoEl.onerror = function() {
-      this.src = 'https://via.placeholder.com/50';
-    };
-  }
-  
-  // Clear messages and show loading
-  if (chatMessages) {
-    chatMessages.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">Loading messages...</p>';
-  }
-  
-  // Highlight selected patient
-  document.querySelectorAll('.chat-patient-item').forEach(item => {
-    item.style.background = 'transparent';
-  });
-  event.currentTarget.style.background = 'var(--bg-secondary)';
-  
-  // Load chat history
-  if (typeof loadChatHistory === 'function') {
-    console.log('Loading chat history for patient:', patientId);
-    loadChatHistory(patientId);
-  } else {
-    console.error('loadChatHistory function not found');
-  }
-}
-
-// FIXED: Patient History Select
+/* ═══════════════════════════════════════════
+   PATIENT HISTORY
+═══════════════════════════════════════════ */
 async function loadPatientHistorySelect() {
-  const token = localStorage.getItem('token');
+  const token  = localStorage.getItem('token');
   const select = document.getElementById('patientSelect');
-  
-  if (!select) {
-    console.error('Patient select element not found');
-    return;
-  }
-  
+  if (!select) return;
+
   try {
-    const response = await fetch(`${API_URL}/doctor/patients`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to load patients');
-    }
-    
-    const patients = await response.json();
-    console.log('Loaded patients for history:', patients.length);
-    
+    const res      = await fetch(`${API_URL}/doctor/patients`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const patients = await res.json();
     select.innerHTML = '<option value="">Choose a patient...</option>' +
       patients.map(p => `<option value="${p._id}">${p.name}</option>`).join('');
-    
-    // Remove old listeners and add fresh one
-    const newSelect = select.cloneNode(true);
-    select.parentNode.replaceChild(newSelect, select);
-    
-    newSelect.addEventListener('change', function() {
-      console.log('Patient selected:', this.value);
-      if (this.value) {
-        loadPatientHistory(this.value);
-      } else {
-        document.getElementById('patientHistoryContent').style.display = 'none';
-      }
+
+    // Rebind to avoid duplicate listeners
+    const fresh = select.cloneNode(true);
+    select.parentNode.replaceChild(fresh, select);
+    fresh.addEventListener('change', function () {
+      if (this.value) loadPatientHistory(this.value);
+      else document.getElementById('patientHistoryContent').style.display = 'none';
     });
-  } catch (error) {
-    console.error('Error loading patients:', error);
+  } catch (e) {
+    console.error(e);
     select.innerHTML = '<option value="">Error loading patients</option>';
   }
 }
@@ -452,58 +333,40 @@ async function loadPatientHistory(patientId) {
     document.getElementById('patientHistoryContent').style.display = 'none';
     return;
   }
-  
-  console.log('Loading history for patient:', patientId);
   const token = localStorage.getItem('token');
-  
+
   try {
-    const patientsResponse = await fetch(`${API_URL}/doctor/patients`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const patients = await patientsResponse.json();
-    const patient = patients.find(p => p._id === patientId);
-    
+    const [pRes, hRes] = await Promise.all([
+      fetch(`${API_URL}/doctor/patients`,                      { headers: { 'Authorization': `Bearer ${token}` } }),
+      fetch(`${API_URL}/doctor/patient/${patientId}/history`, { headers: { 'Authorization': `Bearer ${token}` } }),
+    ]);
+    const patients = await pRes.json();
+    const history  = await hRes.json();
+    const patient  = patients.find(p => p._id === patientId);
+
+    document.getElementById('patientHistoryContent').style.display = 'block';
+
+    // Patient info card
     if (patient) {
-      let photoPath = 'https://via.placeholder.com/80';
-      if (patient.profilePhoto) {
-        let cleanPath = patient.profilePhoto.replace(/\\/g, '/');
-        cleanPath = cleanPath.replace(/backend\/uploads\//g, '');
-        photoPath = `/backend/uploads/${cleanPath}`;
-      }
-      
+      const photo = getPhotoPath(patient.profilePhoto, 80);
       document.getElementById('patientInfo').innerHTML = `
-        <div style="display: flex; align-items: center; gap: 20px;">
-          <img src="${photoPath}" 
-               style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;"
-               onerror="this.src='https://via.placeholder.com/80'" alt="${patient.name}">
+        <div style="display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
+          <img src="${photo}" alt="${patient.name}"
+               style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border);"
+               onerror="this.src='https://via.placeholder.com/72'">
           <div>
-            <h3 style="margin: 0 0 5px 0;">${patient.name}</h3>
-            <p style="margin: 0; color: var(--text-secondary);">${patient.email}</p>
-            <p style="margin: 5px 0 0 0; color: var(--text-secondary);">Phone: ${patient.phone}</p>
+            <h3 style="font-size:17px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${patient.name}</h3>
+            <p style="font-size:13px;color:var(--text-muted);">${patient.email}</p>
+            <p style="font-size:13px;color:var(--text-muted);margin-top:2px;">Phone: ${patient.phone || '—'}</p>
           </div>
         </div>
       `;
     }
-    
-    const response = await fetch(`${API_URL}/doctor/patient/${patientId}/history`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to load wellness history');
-    }
-    
-    const history = await response.json();
-    console.log('Loaded wellness history:', history.length, 'entries');
-    
-    document.getElementById('patientHistoryContent').style.display = 'block';
-    
+
+    // Chart
     const ctx = document.getElementById('patientHistoryChart');
-    if (window.patientChart && typeof window.patientChart.destroy === 'function') {
-      window.patientChart.destroy();
-    }
-    
-    if (history.length > 0) {
+    if (window.patientChart?.destroy) window.patientChart.destroy();
+    if (history.length) {
       window.patientChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -511,541 +374,584 @@ async function loadPatientHistory(patientId) {
           datasets: [{
             label: 'Stress Level',
             data: history.map(h => h.stressLevel),
-            borderColor: 'rgba(220, 53, 69, 1)',
-            backgroundColor: 'rgba(220, 53, 69, 0.1)',
-            tension: 0.4,
-            fill: true
-          }]
+            borderColor: '#e03d3d',
+            backgroundColor: 'rgba(224,61,61,0.08)',
+            tension: 0.4, fill: true,
+            pointBackgroundColor: '#e03d3d',
+            pointRadius: 4, pointHoverRadius: 6,
+          }],
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
           scales: {
-            y: {
-              beginAtZero: true,
-              max: 10,
-              title: {
-                display: true,
-                text: 'Stress Level'
-              }
-            }
-          }
-        }
+            y: { beginAtZero: true, max: 10, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } },
+          },
+        },
       });
     }
-    
-    const entriesContainer = document.getElementById('patientWellnessEntries');
-    if (history.length === 0) {
-      entriesContainer.innerHTML = '<p class="empty-state">No wellness data available for this patient</p>';
-    } else {
-      entriesContainer.innerHTML = history.map(entry => `
-        <div class="wellness-entry" style="border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <strong style="color: var(--text-primary);">${new Date(entry.date).toLocaleDateString()}</strong>
-            <span style="font-size: 24px;">${entry.mood}</span>
-          </div>
-          <div style="display: flex; gap: 20px; color: var(--text-secondary);">
-            <span>💤 Sleep: ${entry.sleepHours}h</span>
-            <span>📊 Stress: ${entry.stressLevel}/10</span>
-            <span>${entry.todoCompleted ? '✅ Tasks Done' : '⏳ Tasks Pending'}</span>
-          </div>
-          ${entry.notes ? `<p style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-style: italic;">${entry.notes}</p>` : ''}
-        </div>
-      `).join('');
+
+    // Wellness entries
+    const entries = document.getElementById('patientWellnessEntries');
+    if (!history.length) {
+      entries.innerHTML = `<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><p>No wellness data yet</p></div>`;
+      return;
     }
-  } catch (error) {
-    console.error('Error loading patient history:', error);
+    entries.innerHTML = history.map(entry => {
+      const stressColor = entry.stressLevel > 7 ? 'var(--danger)' : entry.stressLevel > 5 ? 'var(--warning)' : 'var(--success)';
+      return `
+        <div class="wellness-entry">
+          <div class="wellness-entry-header">
+            <span class="wellness-date">${new Date(entry.date).toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'})}</span>
+            <span class="mood-chip" style="background:var(--primary-alpha);color:var(--primary);">${entry.mood || '—'}</span>
+          </div>
+          <div class="wellness-stats-row">
+            <span class="wellness-stat">
+              <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10c0-.5-.1-1.1-.2-1.6L12 12V2z"/></svg>
+              Sleep: <strong>${entry.sleepHours}h</strong>
+            </span>
+            <span class="wellness-stat" style="color:${stressColor}">
+              <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Stress: <strong style="color:${stressColor}">${entry.stressLevel}/10</strong>
+            </span>
+            <span class="wellness-stat">
+              <svg viewBox="0 0 24 24">${entry.todoCompleted ? '<polyline points="20 6 9 17 4 12"/>' : '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'}</svg>
+              Tasks: <strong>${entry.todoCompleted ? 'Done' : 'Pending'}</strong>
+            </span>
+          </div>
+          ${entry.notes ? `<p class="wellness-notes">${entry.notes}</p>` : ''}
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error(e);
     showNotification('Error loading patient history', 'error');
-    document.getElementById('patientHistoryContent').style.display = 'none';
   }
 }
 
-// FIXED: Sentiment Trends
+/* ═══════════════════════════════════════════
+   SENTIMENT TRENDS
+═══════════════════════════════════════════ */
 async function loadSentimentTrends() {
   const token = localStorage.getItem('token');
   const container = document.getElementById('sentimentTrends');
-  
-  if (!container) {
-    console.error('Sentiment trends container not found');
-    return;
-  }
-  
-  container.innerHTML = '<p class="empty-state">Loading sentiment data...</p>';
-  
+
+  container.innerHTML = `<div class="empty-state"><p>Loading sentiment data...</p></div>`;
+
   try {
-    const response = await fetch(`${API_URL}/doctor/patients/sentiment`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to load sentiment data');
-    }
-    
-    const trends = await response.json();
-    console.log('Loaded sentiment trends:', trends.length);
-    
-    if (trends.length === 0) {
-      container.innerHTML = '<p class="empty-state">No data available</p>';
+    const res    = await fetch(`${API_URL}/doctor/patients/sentiment`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw new Error('Failed');
+    const trends = await res.json();
+
+    if (!trends.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><p>No data available</p></div>`;
       return;
     }
-    
+
     container.innerHTML = `
-      <table class="sentiment-table" style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr style="background: var(--bg-secondary); text-align: left;">
-            <th style="padding: 12px; border-bottom: 2px solid var(--border-color);">Patient Name</th>
-            <th style="padding: 12px; border-bottom: 2px solid var(--border-color);">Avg Stress Level</th>
-            <th style="padding: 12px; border-bottom: 2px solid var(--border-color);">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${trends.map(trend => `
-            <tr style="border-bottom: 1px solid var(--border-color);">
-              <td style="padding: 12px;">${trend.patientName}</td>
-              <td style="padding: 12px; font-weight: 600;">${trend.avgStress.toFixed(1)}/10</td>
-              <td style="padding: 12px;">
-                <span class="status-badge ${trend.avgStress > 7 ? 'danger' : trend.avgStress > 5 ? 'warning' : 'success'}"
-                      style="padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 600;">
-                  ${trend.avgStress > 7 ? '⚠️ High Risk' : trend.avgStress > 5 ? '⚡ Moderate' : '✅ Good'}
-                </span>
-              </td>
+      <div style="overflow-x:auto;">
+        <table class="sentiment-table">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Avg Stress</th>
+              <th>Risk Level</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${trends.map(t => {
+              const isHigh = t.avgStress > 7;
+              const isMed  = t.avgStress > 5;
+              const riskClass = isHigh ? 'risk-high' : isMed ? 'risk-medium' : 'risk-low';
+              const riskLabel = isHigh ? 'High Risk' : isMed ? 'Moderate' : 'Low Risk';
+              const riskIcon  = isHigh
+                ? '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
+                : isMed
+                  ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'
+                  : '<polyline points="20 6 9 17 4 12"/>';
+              return `
+                <tr>
+                  <td style="font-weight:500;">${t.patientName}</td>
+                  <td style="font-weight:700;">${t.avgStress.toFixed(1)} / 10</td>
+                  <td>
+                    <span class="risk-pill ${riskClass}">
+                      <svg viewBox="0 0 24 24">${riskIcon}</svg>
+                      ${riskLabel}
+                    </span>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
     `;
-  } catch (error) {
-    console.error('Error loading sentiment trends:', error);
-    container.innerHTML = '<p class="empty-state" style="color: var(--danger-color);">Error loading sentiment data</p>';
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = errorStateHTML('Error loading sentiment data');
   }
 }
 
+/* ═══════════════════════════════════════════
+   TELECOUNSELING — patient list + chat wiring
+═══════════════════════════════════════════ */
+async function initializeTelecounseling() {
+  const token     = localStorage.getItem('token');
+  const container = document.getElementById('chatPatientsList');
+  if (!container) return;
+
+  container.innerHTML = `<div class="empty-state" style="padding:24px;"><p>Loading patients...</p></div>`;
+
+  try {
+    const res      = await fetch(`${API_URL}/doctor/patients`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const patients = await res.json();
+
+    if (!patients.length) {
+      container.innerHTML = `<div class="empty-state" style="padding:24px;"><div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><p>No patients assigned yet</p></div>`;
+      return;
+    }
+
+    container.innerHTML = patients.map(p => {
+      const photo = getPhotoPath(p.profilePhoto, 50);
+      return `
+        <div class="chat-patient-item"
+             data-patient-id="${p._id}"
+             data-patient-name="${p.name.replace(/"/g,'&quot;')}"
+             data-patient-photo="${photo}">
+          <img src="${photo}" class="chat-patient-avatar"
+               onerror="this.src='https://via.placeholder.com/40'" alt="${p.name}">
+          <div class="chat-patient-info">
+            <h4>${p.name}</h4>
+            <p>Tap to start chat</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Click handlers
+    container.querySelectorAll('.chat-patient-item').forEach(item => {
+      item.addEventListener('click', function () {
+        container.querySelectorAll('.chat-patient-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        selectPatientChat(
+          this.dataset.patientId,
+          this.dataset.patientName,
+          this.dataset.patientPhoto,
+        );
+      });
+    });
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = errorStateHTML('Error loading patients');
+  }
+}
+
+function selectPatientChat(patientId, patientName, patientPhoto) {
+  // Wire up telecounseling.js's global
+  if (typeof window !== 'undefined') window.currentChatUser = patientId;
+
+  // Hide empty state, show chat UI
+  const emptyState = document.getElementById('chatEmptyState');
+  const header     = document.getElementById('chatHeaderDoctor');
+  const messages   = document.getElementById('chatMessagesDoctor');
+  const inputBar   = document.getElementById('chatInputDoctor');
+
+  if (emptyState) emptyState.style.display = 'none';
+  if (header)   { header.style.display   = 'flex'; }
+  if (messages) { messages.style.display = 'flex'; }
+  if (inputBar) { inputBar.style.display = 'flex'; }
+
+  // Update header
+  const nameEl  = document.getElementById('patientNameChat');
+  const photoEl = document.getElementById('patientPhotoChat');
+  if (nameEl)  nameEl.textContent = patientName;
+  if (photoEl) {
+    photoEl.src = patientPhoto;
+    photoEl.onerror = () => { photoEl.src = 'https://via.placeholder.com/40'; };
+  }
+
+  // Clear messages
+  if (messages) messages.innerHTML = `<p style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">Loading messages...</p>`;
+
+  // Load history via telecounseling.js
+  if (typeof loadChatHistory === 'function') loadChatHistory(patientId);
+}
+
+/* ═══════════════════════════════════════════
+   APPOINTMENTS
+═══════════════════════════════════════════ */
 async function loadAppointments() {
   const token = localStorage.getItem('token');
   try {
-    const response = await fetch(`${API_URL}/doctor/appointments`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const appointments = await response.json();
-    
-    displayAppointments(appointments);
-  } catch (error) {
-    console.error('Error:', error);
-  }
+    const res  = await fetch(`${API_URL}/doctor/appointments`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const apts = await res.json();
+    displayAppointments(apts);
+  } catch (e) { console.error(e); }
 }
 
 function displayAppointments(appointments) {
   const container = document.getElementById('appointmentsList');
-  if (appointments.length === 0) {
-    container.innerHTML = '<p class="empty-state">No appointments</p>';
+
+  if (!appointments.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <p>No appointments in this category</p>
+      </div>`;
     return;
   }
-  
-  container.innerHTML = appointments.map(apt => `
-    <div class="card appointment-card">
-      <div class="appointment-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h4 style="margin: 0;">${new Date(apt.date).toLocaleDateString()} at ${apt.time}</h4>
-        <span class="status-badge ${apt.status}" style="padding: 5px 15px; border-radius: 5px; font-size: 12px; font-weight: 600;">${apt.status}</span>
-      </div>
-      <p><strong>Patient:</strong> ${apt.patientId?.name || 'N/A'}</p>
-      <p><strong>Phone:</strong> ${apt.patientId?.phone || 'N/A'}</p>
-      <p><strong>Reason:</strong> ${apt.reason}</p>
-      ${apt.status === 'pending' ? `
-        <div class="btn-group" style="margin-top: 15px;">
-          <button class="btn btn-success btn-sm" onclick="updateAppointment('${apt._id}', 'approved')">✅ Approve</button>
-          <button class="btn btn-danger btn-sm" onclick="updateAppointment('${apt._id}', 'rejected')">❌ Reject</button>
+
+  container.innerHTML = appointments.map(apt => {
+    const d     = new Date(apt.date);
+    const month = d.toLocaleString('default', { month: 'short' }).toUpperCase();
+    const day   = d.getDate();
+
+    const statusClass = apt.status === 'approved' ? 'approved' : apt.status === 'rejected' ? 'rejected' : 'pending';
+
+    const actionBtns = apt.status === 'pending' ? `
+      <div class="appt-actions">
+        <button class="btn btn-success btn-sm" onclick="updateAppointment('${apt._id}','approved')">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Approve
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="updateAppointment('${apt._id}','rejected')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reject
+        </button>
+      </div>` : '';
+
+    return `
+      <div class="appointment-card">
+        <div class="appt-date-block">
+          <p class="appt-date-month">${month}</p>
+          <p class="appt-date-day">${day}</p>
         </div>
-      ` : ''}
-    </div>
-  `).join('');
+        <div class="appt-info">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;">
+            <h4>${apt.patientId?.name || 'Unknown Patient'}</h4>
+            <span class="status-pill ${statusClass}">${apt.status}</span>
+          </div>
+          <div class="appt-meta">
+            <span class="appt-meta-item">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${apt.time || '—'}
+            </span>
+            <span class="appt-meta-item">
+              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12"/></svg>
+              ${apt.patientId?.phone || '—'}
+            </span>
+          </div>
+          <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.5;">
+            <strong style="color:var(--text-primary);">Reason:</strong> ${apt.reason}
+          </p>
+          ${actionBtns}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function filterAppointments(filter) {
   const token = localStorage.getItem('token');
-  fetch(`${API_URL}/doctor/appointments`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  })
-  .then(r => r.json())
-  .then(appointments => {
-    const filtered = filter === 'all' ? appointments : 
-                     appointments.filter(a => a.status === filter);
-    displayAppointments(filtered);
-  });
+  fetch(`${API_URL}/doctor/appointments`, { headers: { 'Authorization': `Bearer ${token}` } })
+    .then(r => r.json())
+    .then(apts => {
+      displayAppointments(filter === 'all' ? apts : apts.filter(a => a.status === filter));
+    })
+    .catch(console.error);
 }
 
 async function updateAppointment(id, status) {
   const token = localStorage.getItem('token');
   try {
-    const response = await fetch(`${API_URL}/doctor/appointment/${id}`, {
+    const res = await fetch(`${API_URL}/doctor/appointment/${id}`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ status })
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
     });
-    
-    if (response.ok) {
+    if (res.ok) {
       showNotification(`Appointment ${status}!`, 'success');
       loadAppointments();
       loadOverviewData();
     }
-  } catch (error) {
-    showNotification('Error updating appointment', 'error');
-  }
+  } catch (e) { showNotification('Error updating appointment', 'error'); }
 }
-// CRITICAL FIX: Prevent double submission
+
+/* ═══════════════════════════════════════════
+   UPLOAD RESOURCES
+═══════════════════════════════════════════ */
 async function uploadResource(e) {
   e.preventDefault();
-  
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  
-  // CRITICAL: Check if already uploading
-  if (submitBtn.disabled) {
-    console.log('⚠️ Upload already in progress, ignoring duplicate click');
-    return;
-  }
-  
-  const fileInput = document.getElementById('resourceFile');
-  const file = fileInput.files[0];
-  
-  if (!file) {
-    showNotification('Please select a file', 'error');
-    return;
-  }
-  
-  if (file.size > 50 * 1024 * 1024) {
-    showNotification('File size exceeds 50MB limit', 'error');
-    return;
-  }
-  
+  const submitBtn = document.getElementById('uploadSubmitBtn');
+  if (submitBtn.disabled) return;
+
+  const file = document.getElementById('resourceFile').files[0];
   const type = document.getElementById('resourceType').value;
-  
-  if (!type) {
-    showNotification('Please select resource type', 'error');
-    return;
-  }
-  
+  const title = document.getElementById('resourceTitle').value;
+  const desc  = document.getElementById('resourceDescription').value;
+
+  if (!file) { showNotification('Please select a file', 'error'); return; }
+  if (!type) { showNotification('Please select a resource type', 'error'); return; }
+  if (file.size > 50 * 1024 * 1024) { showNotification('File size exceeds 50 MB limit', 'error'); return; }
+
   const validTypes = {
-    audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/x-m4a'],
-    video: ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'],
-    article: ['application/pdf']
+    audio:   ['audio/mpeg','audio/wav','audio/ogg','audio/mp3','audio/x-m4a'],
+    video:   ['video/mp4','video/webm','video/ogg','video/quicktime'],
+    article: ['application/pdf'],
   };
-  
-  if (!validTypes[type].includes(file.type)) {
-    showNotification(`Invalid file type for ${type}. Please select: ${validTypes[type].join(', ')}`, 'error');
+  if (!validTypes[type]?.includes(file.type)) {
+    showNotification(`Invalid file type for ${type}`, 'error');
     return;
   }
-  
+
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('title', document.getElementById('resourceTitle').value);
-  formData.append('description', document.getElementById('resourceDescription').value);
-  formData.append('type', type);
-  formData.append('uploadType', type);
-  
+  formData.append('file',        file);
+  formData.append('title',       title);
+  formData.append('description', desc);
+  formData.append('type',        type);
+  formData.append('uploadType',  type);
+
   const token = localStorage.getItem('token');
-  const originalBtnText = submitBtn.textContent;
-  
+  const originalHTML = submitBtn.innerHTML;
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<svg viewBox="0 0 24 24" style="animation:spin 1s linear infinite;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.69"/></svg> Uploading...`;
+  submitBtn.style.opacity = '0.7';
+
   try {
-    // CRITICAL: Disable button IMMEDIATELY
-    submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Uploading...';
-    submitBtn.style.opacity = '0.6';
-    submitBtn.style.cursor = 'not-allowed';
-    
-    console.log('📤 Starting upload...');
-    
-    const response = await fetch(`${API_URL}/resource/upload`, {
+    const res = await fetch(`${API_URL}/resource/upload`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
-      body: formData
+      body: formData,
     });
-    
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      console.error('Non-JSON response:', text);
-      throw new Error('Server returned invalid response. Check server logs.');
-    }
-    
-    const result = await response.json();
-    
-    if (response.ok) {
-      showNotification('Resource uploaded successfully! Pending admin approval.', 'success');
-      
-      // Reset form
+    const result = await res.json();
+    if (res.ok) {
+      showNotification('Resource uploaded! Pending admin approval.', 'success');
       e.target.reset();
-      fileInput.value = '';
-      
+      document.getElementById('fileUploadArea').classList.remove('has-file');
+      document.getElementById('fileUploadName').textContent = '';
+      // Reset type tabs
+      document.querySelectorAll('.resource-type-tab').forEach((t,i) => { t.classList.toggle('active', i===0); });
+      document.getElementById('resourceType').value = 'audio';
       loadMyResources();
-      
-      // Re-enable button after 2 seconds
       setTimeout(() => {
         submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
+        submitBtn.innerHTML = originalHTML;
         submitBtn.style.opacity = '1';
-        submitBtn.style.cursor = 'pointer';
       }, 2000);
-    } else {
-      throw new Error(result.error || 'Upload failed');
-    }
-  } catch (error) {
-    console.error('Upload error:', error);
-    showNotification('Upload failed: ' + error.message, 'error');
-    
-    // Re-enable button immediately on error
+    } else { throw new Error(result.error || 'Upload failed'); }
+  } catch (err) {
+    showNotification('Upload failed: ' + err.message, 'error');
     submitBtn.disabled = false;
-    submitBtn.textContent = originalBtnText;
+    submitBtn.innerHTML = originalHTML;
     submitBtn.style.opacity = '1';
-    submitBtn.style.cursor = 'pointer';
   }
 }
 
-// FIXED: Doctor Dashboard - Show Uploaded Resources and Complaints
+// Spinner keyframes injected once
+if (!document.getElementById('spinStyle')) {
+  const s = document.createElement('style');
+  s.id = 'spinStyle';
+  s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(s);
+}
 
-// Add this to doctor-dashboard.js - Replace loadMyResources function
+/* ═══════════════════════════════════════════
+   MY UPLOADED RESOURCES
+═══════════════════════════════════════════ */
 async function loadMyResources() {
-  const token = localStorage.getItem('token');
-  const myResourcesContainer = document.getElementById('myResourcesList');
-  
-  if (!myResourcesContainer) {
-    console.error('My resources container not found');
-    return;
-  }
-  
-  myResourcesContainer.innerHTML = '<p class="empty-state">Loading your resources...</p>';
-  
+  const token     = localStorage.getItem('token');
+  const container = document.getElementById('myResourcesList');
+  if (!container) return;
+
+  container.innerHTML = `<p style="color:var(--text-muted);font-size:13.5px;padding:10px 0;">Loading resources...</p>`;
+
   try {
-    // Get ALL resources (both pending and approved)
-    const [pendingRes, approvedRes] = await Promise.all([
-      fetch(`${API_URL}/admin/resources/pending`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      }),
-      fetch(`${API_URL}/resources`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+    const [pendRes, appRes] = await Promise.all([
+      fetch(`${API_URL}/admin/resources/pending`, { headers: { 'Authorization': `Bearer ${token}` } }),
+      fetch(`${API_URL}/resources`,               { headers: { 'Authorization': `Bearer ${token}` } }),
     ]);
-    
-    const pendingResources = await pendingRes.json();
-    const approvedResources = await approvedRes.json();
-    
-    // Get current user ID
-    const user = JSON.parse(localStorage.getItem('user'));
-    
-    // Filter resources uploaded by current doctor
-    const myPendingResources = pendingResources.filter(r => r.uploadedBy === user.id);
-    const myApprovedResources = approvedResources.filter(r => r.uploadedBy === user.id);
-    
-    // Combine all resources
-    const allMyResources = [
-      ...myPendingResources.map(r => ({...r, approved: false})),
-      ...myApprovedResources.map(r => ({...r, approved: true}))
+    const pending  = await pendRes.json();
+    const approved = await appRes.json();
+    const user     = JSON.parse(localStorage.getItem('user'));
+
+    const mine = [
+      ...pending.filter(r => r.uploadedBy === user.id).map(r => ({ ...r, _approved: false })),
+      ...approved.filter(r => r.uploadedBy === user.id).map(r => ({ ...r, _approved: true })),
     ];
-    
-    console.log('Doctor uploaded resources:', allMyResources.length);
-    
-    if (allMyResources.length === 0) {
-      myResourcesContainer.innerHTML = '<p class="empty-state">No resources uploaded yet. Upload your first resource above!</p>';
+
+    if (!mine.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg></div>
+          <p>No resources uploaded yet. Upload your first resource above.</p>
+        </div>`;
       return;
     }
-    
-    // Display resources with status
-    myResourcesContainer.innerHTML = `
-      <div style="display: grid; gap: 15px;">
-        ${allMyResources.map(resource => {
-          const statusBadge = resource.approved ? 
-            '<span class="status-badge approved" style="background: rgba(40, 167, 69, 0.2); color: #28a745; padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 600;">✅ Approved</span>' :
-            '<span class="status-badge pending" style="background: rgba(255, 193, 7, 0.2); color: #ffc107; padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 600;">⏳ Pending Approval</span>';
-          
-          const icon = resource.type === 'audio' ? '🎵' : 
-                      resource.type === 'video' ? '🎬' : '📄';
-          
-          return `
-            <div class="card" style="padding: 15px; border-left: 4px solid ${resource.approved ? 'var(--success-color)' : 'var(--warning-color)'};">
-              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                <div style="flex: 1;">
-                  <div style="font-size: 24px; margin-bottom: 5px;">${icon}</div>
-                  <h4 style="margin: 0 0 5px 0; color: var(--text-primary);">${resource.title}</h4>
-                  <p style="color: var(--text-secondary); font-size: 14px; margin: 5px 0;">${resource.description}</p>
-                </div>
-                <div>
-                  ${statusBadge}
-                </div>
-              </div>
-              <div style="display: flex; gap: 10px; align-items: center; color: var(--text-secondary); font-size: 12px; margin-top: 10px;">
-                <span style="background: var(--bg-secondary); padding: 4px 10px; border-radius: 4px; text-transform: uppercase; font-weight: 600;">${resource.type}</span>
-                <span>📅 ${new Date(resource.createdAt).toLocaleDateString()}</span>
-                ${resource.approved ? '<span style="color: var(--success-color); font-weight: 600;">✓ Visible to patients</span>' : '<span style="color: var(--warning-color); font-weight: 600;">⏳ Awaiting admin approval</span>'}
-              </div>
+
+    // Icon & color per type
+    const meta = {
+      audio:   { bg: 'linear-gradient(135deg,#7c3aed,#a855f7)', icon: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>' },
+      video:   { bg: 'linear-gradient(135deg,#0891b2,#06b6d4)', icon: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>' },
+      article: { bg: 'linear-gradient(135deg,#d97706,#f59e0b)', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
+    };
+
+    container.innerHTML = mine.map(r => {
+      const m   = meta[r.type] || meta.article;
+      const cls = r._approved ? 'approved' : 'pending';
+      const pill = r._approved
+        ? `<span class="status-pill approved">Approved</span>`
+        : `<span class="status-pill pending">Pending Review</span>`;
+
+      return `
+        <div class="my-resource-card ${cls}">
+          <div class="resource-icon" style="background:${m.bg};">
+            <svg viewBox="0 0 24 24">${m.icon}</svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;">
+              <h4 style="font-size:14px;font-weight:600;color:var(--text-primary);line-height:1.3;">${r.title}</h4>
+              ${pill}
             </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-  } catch (error) {
-    console.error('Error loading resources:', error);
-    myResourcesContainer.innerHTML = '<p class="empty-state" style="color: var(--danger-color);">Error loading your resources. Please try again.</p>';
+            <p style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px;">${r.description}</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <span style="background:var(--bg-panel);color:var(--text-muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:100px;">${r.type}</span>
+              <span style="font-size:12px;color:var(--text-muted);">Uploaded ${new Date(r.createdAt).toLocaleDateString()}</span>
+              ${r._approved ? '<span style="font-size:12px;color:var(--success);font-weight:600;">Visible to patients</span>' : '<span style="font-size:12px;color:var(--warning);font-weight:600;">Awaiting admin approval</span>'}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = errorStateHTML('Error loading resources');
   }
 }
 
+/* ═══════════════════════════════════════════
+   COMPLAINTS
+═══════════════════════════════════════════ */
 async function loadComplaintPatients() {
   const token = localStorage.getItem('token');
-  
   try {
-    // Load patients for complaint dropdown
-    const patientsResponse = await fetch(`${API_URL}/doctor/patients`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const patients = await patientsResponse.json();
-    
-    const select = document.getElementById('complaintPatientId');
+    const res      = await fetch(`${API_URL}/doctor/patients`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const patients = await res.json();
+    const select   = document.getElementById('complaintPatientId');
     if (select) {
       select.innerHTML = '<option value="">Choose patient...</option>' +
         patients.map(p => `<option value="${p._id}">${p.name}</option>`).join('');
     }
-    
-    // CRITICAL FIX: Load and display previous complaints
     await loadDoctorComplaints();
-    
-  } catch (error) {
-    console.error('Error:', error);
-  }
+  } catch (e) { console.error(e); }
 }
+
 async function loadDoctorComplaints() {
-  const token = localStorage.getItem('token');
-  const complaintsContainer = document.getElementById('complaintsList');
-  
-  if (!complaintsContainer) {
-    console.error('Complaints list container not found');
-    return;
-  }
-  
+  const token     = localStorage.getItem('token');
+  const container = document.getElementById('complaintsList');
+  if (!container) return;
+
   try {
-    // Get all complaints
-    const response = await fetch(`${API_URL}/admin/complaints`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to load complaints');
-    }
-    
-    const allComplaints = await response.json();
+    const res  = await fetch(`${API_URL}/admin/complaints`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw new Error('Failed');
+    const all  = await res.json();
     const user = JSON.parse(localStorage.getItem('user'));
-    
-    // Filter complaints filed by current doctor
-    const myComplaints = allComplaints.filter(c => c.complainerId === user.id);
-    
-    console.log('Doctor complaints:', myComplaints.length);
-    
-    if (myComplaints.length === 0) {
-      complaintsContainer.innerHTML = '<p class="empty-state">No complaints filed yet</p>';
+    const mine = all.filter(c => c.complainerId === user.id);
+
+    if (!mine.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <p>No complaints filed yet</p>
+        </div>`;
       return;
     }
-    
-    // Display complaints with status
-    complaintsContainer.innerHTML = `
-      <div style="display: grid; gap: 15px; margin-top: 20px;">
-        ${myComplaints.map(complaint => {
-          const isPending = complaint.status === 'pending';
-          const statusBadge = isPending ?
-            '<span class="status-badge pending" style="background: rgba(255, 193, 7, 0.2); color: #ffc107; padding: 5px 15px; border-radius: 5px; font-size: 12px; font-weight: 600;">⚠ Pending</span>' :
-            '<span class="status-badge success" style="background: rgba(40, 167, 69, 0.2); color: #28a745; padding: 5px 15px; border-radius: 5px; font-size: 12px; font-weight: 600;">✅ Resolved</span>';
-          
-          return `
-            <div class="card" style="padding: 20px; border-left: 4px solid ${isPending ? 'var(--warning-color)' : 'var(--success-color)'};">
-              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-                <div style="flex: 1;">
-                  <h4 style="margin: 0 0 10px 0; color: var(--text-primary);">${complaint.subject}</h4>
-                </div>
-                <div>
-                  ${statusBadge}
-                </div>
-              </div>
-              
-              <div style="background: var(--bg-secondary); padding: 12px; border-radius: 8px; margin-bottom: 10px;">
-                <p style="color: var(--text-secondary); margin: 0; line-height: 1.6;">${complaint.description}</p>
-              </div>
-              
-              <div style="display: flex; gap: 15px; flex-wrap: wrap; color: var(--text-secondary); font-size: 13px; margin-top: 10px;">
-                <span><strong>Against:</strong> ${complaint.againstRole || 'System'}</span>
-                <span><strong>Filed:</strong> ${new Date(complaint.createdAt).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'short', 
-                  day: 'numeric' 
-                })}</span>
-                ${!isPending ? `<span style="color: var(--success-color); font-weight: 600;">✓ Resolved by admin</span>` : ''}
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-    
-  } catch (error) {
-    console.error('Error loading complaints:', error);
-    complaintsContainer.innerHTML = '<p class="empty-state" style="color: var(--danger-color);">Error loading complaints. Please try again.</p>';
+
+    container.innerHTML = mine.map(c => {
+      const isPending   = c.status === 'pending';
+      const cardClass   = isPending ? 'pending' : 'resolved';
+      const pillClass   = isPending ? 'pending' : 'approved';
+      const pillLabel   = isPending ? 'Under Review' : 'Resolved';
+      return `
+        <div class="complaint-card ${cardClass}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">
+            <h4 style="font-size:14.5px;font-weight:600;color:var(--text-primary);">${c.subject}</h4>
+            <span class="status-pill ${pillClass}" style="flex-shrink:0;">${pillLabel}</span>
+          </div>
+          <div style="background:var(--bg-panel);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px;">
+            <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.65;margin:0;">${c.description}</p>
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--text-muted);">
+            <span><strong style="color:var(--text-primary);">Against:</strong> ${c.againstRole || 'System'}</span>
+            <span><strong style="color:var(--text-primary);">Filed:</strong> ${new Date(c.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</span>
+            ${!isPending ? '<span style="color:var(--success);font-weight:600;">Resolved by admin</span>' : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = errorStateHTML('Error loading complaints');
   }
 }
 
 async function submitComplaint(e) {
   e.preventDefault();
-  
-  const token = localStorage.getItem('token');
+  const token      = localStorage.getItem('token');
   const againstType = document.getElementById('complaintAgainst').value;
-  
+
   const data = {
-    againstId: againstType === 'patient' ? document.getElementById('complaintPatientId')?.value : null,
+    againstId:   againstType === 'patient' ? document.getElementById('complaintPatientId')?.value : null,
     againstRole: againstType === 'patient' ? 'patient' : againstType,
-    subject: document.getElementById('complaintSubject').value,
-    description: document.getElementById('complaintDescription').value
+    subject:     document.getElementById('complaintSubject').value,
+    description: document.getElementById('complaintDescription').value,
   };
-  
+
   try {
-    const response = await fetch(`${API_URL}/complaint`, {
+    const res = await fetch(`${API_URL}/complaint`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     });
-    
-    if (response.ok) {
-      showNotification('Complaint submitted successfully! Admin will review it.', 'success');
+    if (res.ok) {
+      showNotification('Complaint submitted successfully!', 'success');
       document.getElementById('complaintForm').reset();
       document.getElementById('patientSelectGroup').style.display = 'none';
-      
-      // CRITICAL: Reload complaints list to show the new complaint
       await loadDoctorComplaints();
-      
     } else {
-      const error = await response.json();
-      showNotification(error.message || 'Failed to submit complaint', 'error');
+      const err = await res.json();
+      showNotification(err.message || 'Failed to submit complaint', 'error');
     }
-  } catch (error) {
-    console.error('Error submitting complaint:', error);
-    showNotification('Error submitting complaint. Please try again.', 'error');
+  } catch (e) {
+    console.error(e);
+    showNotification('Error submitting complaint', 'error');
   }
 }
 
-// Make sure these functions are called when complaint section is opened
-// Update the showSection function to include complaint loading
-const originalShowSection = showSection;
-window.showSection = function(section) {
-  originalShowSection(section);
-  
-  // Load complaints when complaint section is opened
-  if (section === 'complaint') {
-    loadComplaintPatients();
-  }
-  
-  // Load resources when resources section is opened
-  if (section === 'resources') {
-    loadMyResources();
-  }
-};
+/* ═══════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════ */
+function getPhotoPath(profilePhoto, size) {
+  if (!profilePhoto) return `https://via.placeholder.com/${size}`;
+  let p = profilePhoto.replace(/\\/g, '/').replace(/backend\/uploads\//g, '');
+  return `/backend/uploads/${p}`;
+}
+
+function emptyStateHTML(type) {
+  const icons = {
+    loading:     '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.69"/>',
+    'no-patients':'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
+  };
+  const labels = { loading: 'Loading...', 'no-patients': 'No patients assigned yet' };
+  return `
+    <div class="empty-state">
+      <div class="empty-state-icon"><svg viewBox="0 0 24 24">${icons[type] || icons.loading}</svg></div>
+      <p>${labels[type] || 'No data available'}</p>
+    </div>`;
+}
+
+function errorStateHTML(msg) {
+  return `<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><p style="color:var(--danger);">${msg}</p></div>`;
+}
 
 function logout() {
   localStorage.removeItem('token');
@@ -1054,21 +960,25 @@ function logout() {
 }
 
 function showNotification(message, type) {
-  const notification = document.getElementById('notification');
-  if (notification) {
-    notification.textContent = message;
-    notification.className = `notification ${type} show`;
-    setTimeout(() => notification.classList.remove('show'), 3000);
-  }
+  const n = document.getElementById('notification');
+  if (!n) return;
+  n.textContent = message;
+  n.className   = `notification ${type} show`;
+  setTimeout(() => n.classList.remove('show'), 3200);
 }
 
-// Make functions globally available
+/* ═══════════════════════════════════════════
+   GLOBAL EXPORTS
+═══════════════════════════════════════════ */
 if (typeof window !== 'undefined') {
-  window.viewPatientDetails = viewPatientDetails;
-  window.selectPatientChat = selectPatientChat;
-  window.updateAppointment = updateAppointment;
-  window.loadMyResources = loadMyResources;
+  window.showSection          = showSection;
+  window.viewPatientDetails   = viewPatientDetails;
+  window.selectPatientChat    = selectPatientChat;
+  window.initializeTelecounseling = initializeTelecounseling;
+  window.updateAppointment    = updateAppointment;
+  window.loadMyResources      = loadMyResources;
   window.loadDoctorComplaints = loadDoctorComplaints;
-  window.loadComplaintPatients = loadComplaintPatients;
-  window.submitComplaint = submitComplaint;
+  window.loadComplaintPatients= loadComplaintPatients;
+  window.submitComplaint      = submitComplaint;
+  window.loadPatientHistory   = loadPatientHistory;
 }

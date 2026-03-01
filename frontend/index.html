@@ -4,85 +4,1254 @@
   <meta charset="UTF-8">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mental Health Management System</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <title>MindCare — Mental Health Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ===== CSS VARIABLES ===== */
+    :root {
+      --primary: #1a6b5a;
+      --primary-light: #2d9c82;
+      --primary-dark: #0f4438;
+      --accent: #e8f5f1;
+      --accent-warm: #f5f0e8;
+
+      --bg-page: #f2f5f4;
+      --bg-card: #ffffff;
+      --bg-input: #f7f9f8;
+      --bg-panel: #eef3f1;
+
+      --text-primary: #111c1a;
+      --text-secondary: #4a6260;
+      --text-muted: #8aaba7;
+      --text-on-primary: #ffffff;
+
+      --border: #d5e3e0;
+      --border-focus: #1a6b5a;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.10), 0 6px 20px rgba(0,0,0,0.06);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-xl: 32px;
+
+      --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #0d1614;
+      --bg-card: #141f1c;
+      --bg-input: #1c2a27;
+      --bg-panel: #1a2622;
+
+      --text-primary: #e8f0ee;
+      --text-secondary: #8ab5ae;
+      --text-muted: #4a706b;
+      --text-on-primary: #ffffff;
+
+      --border: #253530;
+      --border-focus: #2d9c82;
+
+      --accent: #172620;
+      --accent-warm: #1f1e14;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      transition: background var(--transition), color var(--transition);
+      overflow-x: hidden;
+    }
+
+    /* ===== LAYOUT ===== */
+    .page-wrapper {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* Left panel — brand/illustration */
+    .brand-panel {
+      width: 42%;
+      background: var(--primary);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 60px 56px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 400px; height: 400px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+
+    .brand-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 300px; height: 300px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 60px;
+    }
+
+    .brand-logo-mark {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-logo-mark svg {
+      width: 24px; height: 24px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .brand-logo-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: rgba(255,255,255,0.95);
+      letter-spacing: -0.3px;
+    }
+
+    .brand-headline {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(32px, 3.5vw, 48px);
+      line-height: 1.15;
+      color: #ffffff;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-headline em {
+      font-style: italic;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .brand-subtext {
+      font-size: 15px;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.7;
+      max-width: 340px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-features {
+      margin-top: 52px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-feature {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-feature-dot {
+      width: 8px; height: 8px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .brand-feature-text {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Right panel — form area */
+    .form-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 32px 48px;
+      position: relative;
+    }
+
+    .form-panel-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .topbar-brand-mobile {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--primary);
+      display: none;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle-btn {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bg-card);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      background: var(--accent);
+    }
+
+    .theme-toggle-btn svg {
+      width: 18px; height: 18px;
+      fill: none;
+      stroke: var(--text-secondary);
+      stroke-width: 2;
+      stroke-linecap: round;
+      transition: stroke var(--transition);
+    }
+
+    .theme-toggle-btn:hover svg { stroke: var(--primary); }
+
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="light"] .icon-sun { display: block; }
+    [data-theme="dark"] .icon-moon { display: block; }
+
+    /* ===== FORM CONTAINER ===== */
+    .form-container {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ===== AUTH SECTIONS ===== */
+    .auth-section { display: none; }
+    .auth-section.active { display: block; }
+
+    .auth-heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(26px, 3vw, 34px);
+      color: var(--text-primary);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .auth-subheading {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+    }
+
+    /* ===== ROLE SELECTION (BUTTONS) ===== */
+    .role-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .role-btn {
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: 20px 14px;
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .role-btn:hover {
+      border-color: var(--primary-light);
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .role-btn.selected {
+      border-color: var(--primary);
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26,107,90,0.12);
+    }
+
+    /* Login role buttons */
+    .login-role-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .login-role-btn {
+      flex: 1;
+      padding: 11px 8px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all var(--transition);
+      text-align: center;
+    }
+
+    .login-role-btn:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .login-role-btn.selected {
+      border-color: var(--primary);
+      background: var(--accent);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .role-btn-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: var(--bg-panel);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition);
+    }
+
+    .role-btn.selected .role-btn-icon,
+    .role-btn:hover .role-btn-icon {
+      background: rgba(26,107,90,0.12);
+    }
+
+    .role-btn-icon svg {
+      width: 22px; height: 22px;
+      stroke: var(--text-secondary);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke var(--transition);
+    }
+
+    .role-btn.selected .role-btn-icon svg,
+    .role-btn:hover .role-btn-icon svg {
+      stroke: var(--primary);
+    }
+
+    .role-btn-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .role-btn-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ===== FORM ELEMENTS ===== */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+      letter-spacing: 0.02em;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      pointer-events: none;
+      transition: stroke var(--transition);
+    }
+
+    .input-wrapper:focus-within .input-icon {
+      stroke: var(--primary);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14.5px;
+      transition: all var(--transition);
+      outline: none;
+      appearance: none;
+    }
+
+    .has-icon input,
+    .has-icon select {
+      padding-left: 42px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus);
+      background: var(--bg-card);
+      box-shadow: 0 0 0 3px rgba(26,107,90,0.1);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238aaba7' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-toggle svg {
+      width: 17px; height: 17px;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      transition: stroke var(--transition);
+    }
+
+    .password-toggle:hover svg { stroke: var(--primary); }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(26,107,90,0.3);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: var(--bg-panel);
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn-group .btn:only-child { grid-column: 1 / -1; }
+
+    /* ===== TOGGLE AUTH LINK ===== */
+    .toggle-auth {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+    }
+
+    .toggle-auth a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    .toggle-auth a:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
+    /* ===== STEP INDICATOR ===== */
+    .steps-bar {
+      display: flex;
+      align-items: center;
+      margin-bottom: 32px;
+      gap: 0;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      flex: 1;
+    }
+
+    .step-item:last-child { flex: 0; }
+
+    .step-circle {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: all var(--transition);
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-circle.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .step-circle.completed {
+      border-color: var(--primary);
+      background: var(--accent);
+      color: var(--primary);
+    }
+
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      transition: background var(--transition);
+    }
+
+    .step-line.completed { background: var(--primary); }
+
+    .step-label {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .steps-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      margin-top: -16px;
+    }
+
+    /* ===== STEP FORMS ===== */
+    .step-form { display: none; }
+    .step-form.active { display: block; }
+
+    .step-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .step-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    /* ===== REGISTER FORM ===== */
+    .register-form { display: none; }
+
+    /* ===== PHOTO UPLOAD ===== */
+    .photo-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      background: var(--bg-input);
+      position: relative;
+    }
+
+    .photo-upload-area:hover {
+      border-color: var(--primary);
+      background: var(--accent);
+    }
+
+    .photo-upload-area.has-preview {
+      padding: 16px;
+      border-style: solid;
+      border-color: var(--primary);
+    }
+
+    .photo-upload-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 14px;
+      background: var(--bg-panel);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photo-upload-icon svg {
+      width: 24px; height: 24px;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .photo-upload-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .photo-upload-subtext {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .photo-preview-img {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--primary);
+      display: block;
+      margin: 0 auto 12px;
+    }
+
+    .photo-change-text {
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* ===== DOCUMENT UPLOAD ===== */
+    .doc-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all var(--transition);
+      background: var(--bg-input);
+    }
+
+    .doc-upload-area:hover {
+      border-color: var(--primary);
+      background: var(--accent);
+    }
+
+    .doc-upload-area.has-file {
+      border-color: var(--primary);
+      border-style: solid;
+    }
+
+    .doc-upload-icon {
+      width: 44px; height: 44px;
+      background: var(--bg-panel);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .doc-upload-icon svg {
+      width: 20px; height: 20px;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .doc-upload-area.has-file .doc-upload-icon {
+      background: rgba(26,107,90,0.12);
+    }
+
+    .doc-upload-area.has-file .doc-upload-icon svg {
+      stroke: var(--primary);
+    }
+
+    .doc-upload-info { flex: 1; }
+
+    .doc-upload-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .doc-upload-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .doc-upload-filename {
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* ===== ASSESSMENT ===== */
+    .lang-toggle {
+      display: inline-flex;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .lang-btn {
+      padding: 8px 18px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all var(--transition);
+    }
+
+    .lang-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .question-card {
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .question-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+
+    .options-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .option-label {
+      display: flex;
+      align-items: center;
+    }
+
+    .option-label input[type="radio"] {
+      display: none;
+    }
+
+    .option-chip {
+      padding: 6px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .option-label input[type="radio"]:checked + .option-chip {
+      border-color: var(--primary);
+      background: var(--accent);
+      color: var(--primary);
+    }
+
+    /* ===== DOCTOR CARDS ===== */
+    .doctor-select-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .doctor-card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      background: var(--bg-card);
+    }
+
+    .doctor-card:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .doctor-card.selected {
+      border-color: var(--primary);
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26,107,90,0.1);
+    }
+
+    .doctor-card img {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .doctor-card h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+
+    .doctor-card p {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    /* ===== SECTION LABEL ===== */
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+
+    /* ===== INFO TEXT ===== */
+    .info-text {
+      background: var(--accent);
+      border: 1px solid rgba(26,107,90,0.15);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 12.5px;
+      color: var(--primary-dark);
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    [data-theme="dark"] .info-text {
+      color: var(--primary-light);
+    }
+
+    /* ===== NOTIFICATION ===== */
+    .notification {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.3s ease;
+      z-index: 9999;
+      max-width: 340px;
+      pointer-events: none;
+      box-shadow: var(--shadow-md);
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .notification.success {
+      background: #d4edda;
+      color: #155724;
+      border-left: 3px solid #28a745;
+    }
+
+    .notification.error {
+      background: #f8d7da;
+      color: #721c24;
+      border-left: 3px solid #dc3545;
+    }
+
+    [data-theme="dark"] .notification.success {
+      background: #172920;
+      color: #7bcc96;
+      border-left-color: #28a745;
+    }
+
+    [data-theme="dark"] .notification.error {
+      background: #2d1519;
+      color: #f48c9a;
+      border-left-color: #dc3545;
+    }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    /* ===== ROLE SELECTION (REGISTER) ===== */
+    #roleSelection {
+      margin-bottom: 8px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .brand-panel { display: none; }
+
+      .form-panel { padding: 24px 28px; }
+
+      .topbar-brand-mobile { display: block; }
+    }
+
+    @media (max-width: 560px) {
+      .form-panel { padding: 20px 20px; }
+
+      .role-selector-grid { grid-template-columns: 1fr; }
+
+      .form-row { grid-template-columns: 1fr; }
+
+      .login-role-selector { flex-direction: column; }
+
+      .btn-group { grid-template-columns: 1fr; }
+
+      .options-grid { flex-direction: column; }
+    }
+
+    @media (max-width: 360px) {
+      .form-panel { padding: 16px; }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-section.active {
+      animation: fadeInUp 0.4s ease;
+    }
+
+    .step-form.active {
+      animation: fadeInUp 0.3s ease;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* ===== HIDDEN FILE INPUTS ===== */
+    input[type="file"] { display: none !important; }
+  </style>
 </head>
 <body>
-  <div class="theme-toggle">
-    <button id="themeToggle">🌙</button>
-  </div>
 
-  <div class="container">
-    <!-- Login Section -->
-    <div id="loginSection" class="auth-section active">
-      <div class="auth-card">
-        <h1>Welcome Back</h1>
-        <p class="subtitle">Sign in to continue</p>
-        
-        <form id="loginForm">
-          <div class="form-group">
-            <label>Role</label>
-            <select id="loginRole" required>
-              <option value="">Select Role</option>
-              <option value="patient">Patient</option>
-              <option value="doctor">Doctor</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="loginEmail" required>
-          </div>
-          
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="loginPassword" required>
-          </div>
-          
-          <button type="submit" class="btn btn-primary">Login</button>
-        </form>
-        
-        <p class="toggle-auth">Don't have an account? <a href="#" id="showRegister">Register here</a></p>
+<div class="page-wrapper">
+
+  <!-- LEFT BRAND PANEL -->
+  <div class="brand-panel">
+    <div class="brand-logo">
+      <div class="brand-logo-mark">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C8.5 2 5.5 4.5 5 8c-.5 3 1.5 5.5 4 7l1 5h4l1-5c2.5-1.5 4.5-4 4-7-.5-3.5-3.5-6-7-6z"/>
+          <path d="M9 12c.5 1 1.5 1.5 3 1.5s2.5-.5 3-1.5"/>
+        </svg>
       </div>
+      <span class="brand-logo-text">MindCare</span>
     </div>
 
-    <!-- Registration Section -->
-    <div id="registerSection" class="auth-section">
-      <div class="auth-card">
-        <h1>Create Account</h1>
-        <p class="subtitle">Choose your role to begin</p>
-        
+    <h1 class="brand-headline">
+      Mental health<br>care, <em>simplified</em>
+    </h1>
+    <p class="brand-subtext">
+      A secure, professional platform connecting patients with qualified mental health practitioners for compassionate care.
+    </p>
+
+    <div class="brand-features">
+      <div class="brand-feature">
+        <div class="brand-feature-dot"></div>
+        <span class="brand-feature-text">Secure video and audio telecounseling</span>
+      </div>
+      <div class="brand-feature">
+        <div class="brand-feature-dot"></div>
+        <span class="brand-feature-text">AI-powered stress assessment and tracking</span>
+      </div>
+      <div class="brand-feature">
+        <div class="brand-feature-dot"></div>
+        <span class="brand-feature-text">Curated mental health resources library</span>
+      </div>
+      <div class="brand-feature">
+        <div class="brand-feature-dot"></div>
+        <span class="brand-feature-text">Appointment management and scheduling</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="form-panel">
+    <div class="form-panel-topbar">
+      <span class="topbar-brand-mobile">MindCare</span>
+      <div style="flex:1;"></div>
+      <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle theme">
+        <!-- Sun icon (light mode) -->
+        <svg class="icon-sun" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <!-- Moon icon (dark mode) -->
+        <svg class="icon-moon" viewBox="0 0 24 24">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="form-container">
+
+      <!-- ===== LOGIN SECTION ===== -->
+      <div id="loginSection" class="auth-section active">
+        <h1 class="auth-heading">Welcome back</h1>
+        <p class="auth-subheading">Sign in to your MindCare account to continue</p>
+
+        <p class="section-label">Sign in as</p>
+        <div class="login-role-selector">
+          <button class="login-role-btn" data-role="patient" onclick="selectLoginRole(this)">Patient</button>
+          <button class="login-role-btn" data-role="doctor" onclick="selectLoginRole(this)">Doctor</button>
+          <button class="login-role-btn" data-role="admin" onclick="selectLoginRole(this)">Admin</button>
+        </div>
+        <input type="hidden" id="loginRole" value="">
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginEmail">Email Address</label>
+            <div class="input-wrapper has-icon">
+              <svg class="input-icon" viewBox="0 0 24 24">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <input type="email" id="loginEmail" placeholder="you@example.com" required autocomplete="email">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <div class="password-wrapper has-icon input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password" style="padding-left:42px; padding-right:42px;">
+              <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword', this)">
+                <svg viewBox="0 0 24 24" id="loginEye">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:8px;">Sign In</button>
+        </form>
+
+        <p class="toggle-auth">Don't have an account? <a href="#" id="showRegister">Create one</a></p>
+      </div>
+
+      <!-- ===== REGISTER SECTION ===== -->
+      <div id="registerSection" class="auth-section">
+        <h1 class="auth-heading">Create account</h1>
+        <p class="auth-subheading">Join MindCare — choose your role to get started</p>
+
+        <!-- Role Selection -->
         <div id="roleSelection">
-          <div class="role-card" data-role="patient">
-            <h3>Patient</h3>
-            <p>Get mental health support</p>
-          </div>
-          <div class="role-card" data-role="doctor">
-            <h3>Doctor</h3>
-            <p>Provide counseling services</p>
-          </div>
-          <div class="role-card" data-role="admin">
-            <h3>Admin</h3>
-            <p>Manage the system</p>
+          <p class="section-label">I am registering as</p>
+          <div class="role-selector-grid">
+            <button class="role-btn" data-role="patient">
+              <div class="role-btn-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+              <span class="role-btn-label">Patient</span>
+              <span class="role-btn-desc">Get mental health support</span>
+            </button>
+            <button class="role-btn" data-role="doctor">
+              <div class="role-btn-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2zM4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+                  <line x1="12" y1="17" x2="12" y2="22"/>
+                  <line x1="9.5" y1="19.5" x2="14.5" y2="19.5"/>
+                </svg>
+              </div>
+              <span class="role-btn-label">Doctor</span>
+              <span class="role-btn-desc">Provide counseling services</span>
+            </button>
+            <button class="role-btn" data-role="admin">
+              <div class="role-btn-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <span class="role-btn-label">Admin</span>
+              <span class="role-btn-desc">Manage the system</span>
+            </button>
           </div>
         </div>
 
-        <!-- Patient Registration -->
-        <div id="patientRegister" class="register-form" style="display:none;">
-          <div class="steps">
-            <div class="step active" data-step="1">1</div>
-            <div class="step" data-step="2">2</div>
-            <div class="step" data-step="3">3</div>
+        <!-- ===== PATIENT REGISTRATION ===== -->
+        <div id="patientRegister" class="register-form">
+          <!-- Step Bar -->
+          <div class="steps-bar">
+            <div class="step-item">
+              <div class="step-circle active" id="p-step-1">1</div>
+              <div class="step-line" id="p-line-1"></div>
+            </div>
+            <div class="step-item">
+              <div class="step-circle" id="p-step-2">2</div>
+              <div class="step-line" id="p-line-2"></div>
+            </div>
+            <div class="step-item">
+              <div class="step-circle" id="p-step-3">3</div>
+            </div>
           </div>
 
           <!-- Step 1: Basic Info -->
           <form id="patientStep1" class="step-form active">
-            <h2>Basic Information</h2>
+            <h2 class="step-title">Basic Information</h2>
+            <p class="step-subtitle">Tell us a bit about yourself</p>
             <div class="form-row">
               <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="patientName" required>
+                <label>Full Name</label>
+                <input type="text" id="patientName" placeholder="Your full name" required>
               </div>
               <div class="form-group">
                 <label>Date of Birth</label>
@@ -93,91 +1262,117 @@
               <div class="form-group">
                 <label>Gender</label>
                 <select id="patientGender" required>
-                  <option value="">Select</option>
+                  <option value="">Select gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="other">Other</option>
                 </select>
               </div>
               <div class="form-group">
-                <label>Phone</label>
-                <input type="tel" id="patientPhone" required>
+                <label>Phone Number</label>
+                <input type="tel" id="patientPhone" placeholder="+91 00000 00000" required>
               </div>
             </div>
             <div class="form-group">
               <label>Address</label>
-              <textarea id="patientAddress" rows="2" required></textarea>
+              <textarea id="patientAddress" placeholder="Your full address" required rows="2"></textarea>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="patientEmail" required>
+                <label>Email Address</label>
+                <input type="email" id="patientEmail" placeholder="you@example.com" required>
               </div>
               <div class="form-group">
                 <label>Password</label>
-                <input type="password" id="patientPassword" required>
+                <div class="password-wrapper">
+                  <input type="password" id="patientPassword" placeholder="Min. 8 characters" required style="padding-right: 42px;">
+                  <button type="button" class="password-toggle" onclick="togglePasswordVisibility('patientPassword', this)">
+                    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
-            <button type="submit" class="btn btn-primary">Next</button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="backToRoleSelection()">Back</button>
+              <button type="submit" class="btn btn-primary">Continue</button>
+            </div>
           </form>
 
           <!-- Step 2: Profile Photo -->
           <form id="patientStep2" class="step-form">
-            <h2>Upload Profile Photo</h2>
-            <div class="upload-area" onclick="document.getElementById('patientPhoto').click()">
-              <input type="file" id="patientPhoto" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;" required>
-              <div class="upload-placeholder">
-                <p>📸 Click to upload or drag and drop</p>
-                <p style="font-size: 12px; color: var(--text-secondary);">JPG, JPEG, PNG or GIF (Max 5MB)</p>
-                <img id="photoPreview" style="display:none; max-width:200px; margin-top:10px; border-radius: 10px;">
+            <h2 class="step-title">Profile Photo</h2>
+            <p class="step-subtitle">Add a profile picture so your doctor can recognize you</p>
+            <div class="form-group">
+              <div class="photo-upload-area" id="patientPhotoArea" onclick="document.getElementById('patientPhoto').click()">
+                <input type="file" id="patientPhoto" accept="image/jpeg,image/jpg,image/png,image/gif">
+                <div id="patientPhotoPlaceholder">
+                  <div class="photo-upload-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                  </div>
+                  <p class="photo-upload-text">Click to upload photo</p>
+                  <p class="photo-upload-subtext">JPG, PNG or GIF &bull; Max 5MB</p>
+                </div>
+                <div id="patientPhotoPreviewContainer" style="display:none;">
+                  <img id="photoPreview" class="photo-preview-img" src="" alt="Preview">
+                  <p class="photo-change-text">Click to change photo</p>
+                </div>
               </div>
             </div>
             <div class="btn-group">
               <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
-              <button type="submit" class="btn btn-primary">Next</button>
+              <button type="submit" class="btn btn-primary">Continue</button>
             </div>
           </form>
 
-          <!-- Step 3: Assessment -->
+          <!-- Step 3: Assessment + Doctor -->
           <form id="patientStep3" class="step-form">
-            <h2>Stress Assessment</h2>
-            <div class="language-toggle">
+            <h2 class="step-title">Stress Assessment</h2>
+            <p class="step-subtitle">Answer a few questions to help us understand your needs</p>
+            <div class="lang-toggle">
               <button type="button" class="lang-btn active" data-lang="en">English</button>
-              <button type="button" class="lang-btn" data-lang="ta">தமிழ்</button>
+              <button type="button" class="lang-btn" data-lang="ta">Tamil</button>
             </div>
-            
-            <div id="assessmentQuestions">
-              <!-- Questions will be loaded dynamically -->
-            </div>
+            <div id="assessmentQuestions"></div>
 
-            <h3>Select Your Doctor</h3>
-            <div id="doctorsList"></div>
+            <div class="divider"></div>
+            <p class="section-label">Select Your Doctor</p>
+            <div id="doctorsList" class="doctor-select-grid"></div>
 
-            <div class="btn-group">
+            <div class="btn-group" style="margin-top:24px;">
               <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
               <button type="submit" class="btn btn-primary">Complete Registration</button>
             </div>
           </form>
         </div>
 
-        <!-- Doctor Registration -->
-        <div id="doctorRegister" class="register-form" style="display:none;">
-          <div class="steps">
-            <div class="step active" data-step="1">1</div>
-            <div class="step" data-step="2">2</div>
+        <!-- ===== DOCTOR REGISTRATION ===== -->
+        <div id="doctorRegister" class="register-form">
+          <div class="steps-bar">
+            <div class="step-item">
+              <div class="step-circle active" id="d-step-1">1</div>
+              <div class="step-line" id="d-line-1"></div>
+            </div>
+            <div class="step-item">
+              <div class="step-circle" id="d-step-2">2</div>
+            </div>
           </div>
 
-          <!-- Step 1: Basic Info -->
+          <!-- Step 1 -->
           <form id="doctorStep1" class="step-form active">
-            <h2>Doctor Information</h2>
+            <h2 class="step-title">Doctor Information</h2>
+            <p class="step-subtitle">Your professional details for verification</p>
             <div class="form-row">
               <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="doctorName" required>
+                <label>Full Name</label>
+                <input type="text" id="doctorName" placeholder="Dr. Full Name" required>
               </div>
               <div class="form-group">
                 <label>Specialization</label>
-                <input type="text" id="doctorSpec" required>
+                <input type="text" id="doctorSpec" placeholder="e.g. Psychiatry" required>
               </div>
             </div>
             <div class="form-row">
@@ -186,49 +1381,86 @@
                 <input type="date" id="doctorDob" required>
               </div>
               <div class="form-group">
-                <label>Phone</label>
-                <input type="tel" id="doctorPhone" required>
+                <label>Phone Number</label>
+                <input type="tel" id="doctorPhone" placeholder="+91 00000 00000" required>
               </div>
             </div>
             <div class="form-group">
-              <label>Time Slot</label>
-              <input type="text" id="doctorTimeSlot" placeholder="e.g., 9 AM - 5 PM" required>
+              <label>Consultation Time Slot</label>
+              <input type="text" id="doctorTimeSlot" placeholder="e.g. Mon–Fri, 9 AM – 5 PM" required>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="doctorEmail" required>
+                <label>Email Address</label>
+                <input type="email" id="doctorEmail" placeholder="you@example.com" required>
               </div>
               <div class="form-group">
                 <label>Password</label>
-                <input type="password" id="doctorPassword" required>
+                <div class="password-wrapper">
+                  <input type="password" id="doctorPassword" placeholder="Min. 8 characters" required style="padding-right: 42px;">
+                  <button type="button" class="password-toggle" onclick="togglePasswordVisibility('doctorPassword', this)">
+                    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
-            <button type="submit" class="btn btn-primary">Next</button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="backToRoleSelection()">Back</button>
+              <button type="submit" class="btn btn-primary">Continue</button>
+            </div>
           </form>
 
           <!-- Step 2: Documents -->
           <form id="doctorStep2" class="step-form">
-            <h2>Upload Documents</h2>
+            <h2 class="step-title">Upload Documents</h2>
+            <p class="step-subtitle">Required for admin verification before approval</p>
+
             <div class="form-group">
               <label>Profile Photo</label>
-              <div class="upload-area" onclick="document.getElementById('doctorPhoto').click()" style="padding: 20px;">
-                <input type="file" id="doctorPhoto" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;" required>
-                <p>📸 Click to upload profile photo</p>
-                <p style="font-size: 12px; color: var(--text-secondary);">JPG, JPEG, PNG or GIF (Max 5MB)</p>
-                <img id="doctorPhotoPreview" style="display:none; max-width:150px; margin-top:10px; border-radius: 10px;">
+              <div class="photo-upload-area" id="doctorPhotoArea" onclick="document.getElementById('doctorPhoto').click()">
+                <input type="file" id="doctorPhoto" accept="image/jpeg,image/jpg,image/png,image/gif">
+                <div id="doctorPhotoPlaceholder">
+                  <div class="photo-upload-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                  </div>
+                  <p class="photo-upload-text">Click to upload profile photo</p>
+                  <p class="photo-upload-subtext">JPG, PNG or GIF &bull; Max 5MB</p>
+                </div>
+                <div id="doctorPhotoPreviewContainer" style="display:none;">
+                  <img id="doctorPhotoPreview" class="photo-preview-img" src="" alt="Preview">
+                  <p class="photo-change-text">Click to change photo</p>
+                </div>
               </div>
             </div>
+
             <div class="form-group">
-              <label>Doctor Proof (Certificate/License)</label>
-              <div class="upload-area" onclick="document.getElementById('doctorProof').click()" style="padding: 20px;">
-                <input type="file" id="doctorProof" accept=".pdf,image/jpeg,image/jpg,image/png" style="display: none;" required>
-                <p>📄 Click to upload certificate/license</p>
-                <p style="font-size: 12px; color: var(--text-secondary);">PDF, JPG, JPEG, or PNG (Max 10MB)</p>
-                <div id="doctorProofName" style="margin-top: 10px; color: var(--success-color); display: none;"></div>
+              <label>Medical Certificate / License</label>
+              <div class="doc-upload-area" id="doctorProofArea" onclick="document.getElementById('doctorProof').click()">
+                <input type="file" id="doctorProof" accept=".pdf,image/jpeg,image/jpg,image/png">
+                <div class="doc-upload-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                  </svg>
+                </div>
+                <div class="doc-upload-info">
+                  <p class="doc-upload-label" id="doctorProofLabel">Click to upload document</p>
+                  <p class="doc-upload-hint">PDF, JPG or PNG &bull; Max 10MB</p>
+                  <p class="doc-upload-filename" id="doctorProofName" style="display:none;"></p>
+                </div>
               </div>
             </div>
-            <p class="info-text">Your registration will be sent to admin for approval.</p>
+
+            <div class="info-text">
+              Your registration request will be reviewed by an admin before approval. This may take up to 24 hours.
+            </div>
+
             <div class="btn-group">
               <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
               <button type="submit" class="btn btn-primary">Submit Request</button>
@@ -236,56 +1468,100 @@
           </form>
         </div>
 
-        <!-- Admin Registration -->
-        <div id="adminRegister" class="register-form" style="display:none;">
-          <div class="steps">
-            <div class="step active" data-step="1">1</div>
-            <div class="step" data-step="2">2</div>
-            <div class="step" data-step="3">3</div>
+        <!-- ===== ADMIN REGISTRATION ===== -->
+        <div id="adminRegister" class="register-form">
+          <div class="steps-bar">
+            <div class="step-item">
+              <div class="step-circle active" id="a-step-1">1</div>
+              <div class="step-line" id="a-line-1"></div>
+            </div>
+            <div class="step-item">
+              <div class="step-circle" id="a-step-2">2</div>
+              <div class="step-line" id="a-line-2"></div>
+            </div>
+            <div class="step-item">
+              <div class="step-circle" id="a-step-3">3</div>
+            </div>
           </div>
 
-          <!-- Step 1: Basic Info -->
+          <!-- Step 1 -->
           <form id="adminStep1" class="step-form active">
-            <h2>Admin Information</h2>
+            <h2 class="step-title">Admin Information</h2>
+            <p class="step-subtitle">Set up your administrator account</p>
             <div class="form-group">
-              <label>Name</label>
-              <input type="text" id="adminName" required>
+              <label>Full Name</label>
+              <input type="text" id="adminName" placeholder="Your full name" required>
             </div>
             <div class="form-group">
-              <label>Email</label>
-              <input type="email" id="adminEmail" required>
+              <label>Email Address</label>
+              <div class="input-wrapper has-icon">
+                <svg class="input-icon" viewBox="0 0 24 24">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <input type="email" id="adminEmail" placeholder="admin@example.com" required>
+              </div>
             </div>
             <div class="form-group">
               <label>Password</label>
-              <input type="password" id="adminPassword" required>
+              <div class="password-wrapper">
+                <input type="password" id="adminPassword" placeholder="Min. 8 characters" required style="padding-right: 42px;">
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('adminPassword', this)">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
             </div>
-            <button type="submit" class="btn btn-primary">Next</button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="backToRoleSelection()">Back</button>
+              <button type="submit" class="btn btn-primary">Continue</button>
+            </div>
           </form>
 
           <!-- Step 2: Profile Photo -->
           <form id="adminStep2" class="step-form">
-            <h2>Upload Profile Photo</h2>
-            <div class="upload-area" onclick="document.getElementById('adminPhoto').click()">
-              <input type="file" id="adminPhoto" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;" required>
-              <div class="upload-placeholder">
-                <p>📸 Click to upload or drag and drop</p>
-                <p style="font-size: 12px; color: var(--text-secondary);">JPG, JPEG, PNG or GIF (Max 5MB)</p>
-                <img id="adminPhotoPreview" style="display:none; max-width:200px; margin-top:10px; border-radius: 10px;">
+            <h2 class="step-title">Profile Photo</h2>
+            <p class="step-subtitle">Upload a clear photo for your admin account</p>
+            <div class="form-group">
+              <div class="photo-upload-area" id="adminPhotoArea" onclick="document.getElementById('adminPhoto').click()">
+                <input type="file" id="adminPhoto" accept="image/jpeg,image/jpg,image/png,image/gif">
+                <div id="adminPhotoPlaceholder">
+                  <div class="photo-upload-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                  </div>
+                  <p class="photo-upload-text">Click to upload photo</p>
+                  <p class="photo-upload-subtext">JPG, PNG or GIF &bull; Max 5MB</p>
+                </div>
+                <div id="adminPhotoPreviewContainer" style="display:none;">
+                  <img id="adminPhotoPreview" class="photo-preview-img" src="" alt="Preview">
+                  <p class="photo-change-text">Click to change photo</p>
+                </div>
               </div>
             </div>
             <div class="btn-group">
               <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
-              <button type="submit" class="btn btn-primary">Next</button>
+              <button type="submit" class="btn btn-primary">Continue</button>
             </div>
           </form>
 
           <!-- Step 3: Secret Key -->
           <form id="adminStep3" class="step-form">
-            <h2>Enter Admin Secret Key</h2>
+            <h2 class="step-title">Administrator Key</h2>
+            <p class="step-subtitle">Enter the secret key provided by the system owner</p>
             <div class="form-group">
               <label>Secret Key</label>
-              <input type="password" id="adminSecret" required>
-              <p class="info-text">Contact system administrator for the secret key.</p>
+              <div class="password-wrapper">
+                <input type="password" id="adminSecret" placeholder="Enter secret key" required style="padding-right: 42px;">
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('adminSecret', this)">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="info-text" style="margin-top:12px;">
+                Contact the system administrator if you don't have the secret key.
+              </div>
             </div>
             <div class="btn-group">
               <button type="button" class="btn btn-secondary" onclick="previousStep()">Back</button>
@@ -294,13 +1570,491 @@
           </form>
         </div>
 
-        <p class="toggle-auth">Already have an account? <a href="#" id="showLogin">Login here</a></p>
+        <p class="toggle-auth" style="margin-top:24px;">Already have an account? <a href="#" id="showLogin">Sign in here</a></p>
+      </div>
+
+    </div><!-- /form-container -->
+  </div><!-- /form-panel -->
+</div><!-- /page-wrapper -->
+
+<div id="notification" class="notification"></div>
+
+<script>
+// ===== API URL =====
+if (typeof API_URL === 'undefined') {
+  var API_URL = 'http://localhost:3000/api';
+}
+
+// ===== GLOBAL STATE =====
+let currentStep = 1;
+let currentRole = '';
+let tempUserId = '';
+let selectedDoctorId = '';
+let currentLanguage = 'en';
+const tabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+sessionStorage.setItem('currentTabId', tabId);
+
+// ===== THEME =====
+function initTheme() {
+  let theme = sessionStorage.getItem(`theme_${tabId}`) || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  sessionStorage.setItem(`theme_${tabId}`, next);
+}
+
+initTheme();
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+// ===== AUTH NAVIGATION =====
+document.getElementById('showRegister').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('loginSection').classList.remove('active');
+  document.getElementById('registerSection').classList.add('active');
+});
+
+document.getElementById('showLogin').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('registerSection').classList.remove('active');
+  document.getElementById('loginSection').classList.add('active');
+  resetRegistrationForms();
+});
+
+// ===== LOGIN ROLE BUTTONS =====
+function selectLoginRole(btn) {
+  document.querySelectorAll('.login-role-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('loginRole').value = btn.dataset.role;
+}
+
+// ===== REGISTER ROLE CARDS =====
+document.querySelectorAll('.role-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentRole = btn.dataset.role;
+    document.getElementById('roleSelection').style.display = 'none';
+    document.getElementById(`${currentRole}Register`).style.display = 'block';
+    currentStep = 1;
+    if (currentRole === 'patient') {
+      loadDoctors();
+      loadAssessmentQuestions();
+    }
+  });
+});
+
+function backToRoleSelection() {
+  document.querySelectorAll('.register-form').forEach(f => f.style.display = 'none');
+  document.getElementById('roleSelection').style.display = 'block';
+  currentRole = '';
+  currentStep = 1;
+}
+
+// ===== STEP NAVIGATION =====
+const stepMap = { patient: 'p', doctor: 'd', admin: 'a' };
+
+function nextStep() {
+  const currentForm = document.querySelector(`#${currentRole}Register .step-form.active`);
+  const nextForm = currentForm.nextElementSibling;
+  if (nextForm && nextForm.classList.contains('step-form')) {
+    currentForm.classList.remove('active');
+    nextForm.classList.add('active');
+    currentStep++;
+    updateSteps();
+  }
+}
+
+function previousStep() {
+  const currentForm = document.querySelector(`#${currentRole}Register .step-form.active`);
+  const prevForm = currentForm.previousElementSibling;
+  if (prevForm && prevForm.classList.contains('step-form')) {
+    currentForm.classList.remove('active');
+    prevForm.classList.add('active');
+    currentStep--;
+    updateSteps();
+  }
+}
+
+function updateSteps() {
+  const prefix = stepMap[currentRole];
+  if (!prefix) return;
+  for (let i = 1; i <= 3; i++) {
+    const circle = document.getElementById(`${prefix}-step-${i}`);
+    const line = document.getElementById(`${prefix}-line-${i}`);
+    if (!circle) continue;
+    circle.classList.remove('active', 'completed');
+    if (i < currentStep) {
+      circle.classList.add('completed');
+      circle.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
+      if (line) line.classList.add('completed');
+    } else if (i === currentStep) {
+      circle.classList.add('active');
+      circle.textContent = i;
+    } else {
+      circle.textContent = i;
+      if (line) line.classList.remove('completed');
+    }
+  }
+}
+
+// ===== PASSWORD TOGGLE =====
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  btn.querySelector('svg').innerHTML = isPass
+    ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`
+    : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+}
+
+// ===== FILE UPLOADS — Photo Preview =====
+function setupPhotoInput(inputId, placeholderId, previewContainerId, previewImgId, areaId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification('File size must be less than 5MB', 'error');
+      this.value = ''; return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById(previewImgId).src = e.target.result;
+      document.getElementById(placeholderId).style.display = 'none';
+      document.getElementById(previewContainerId).style.display = 'block';
+      const area = document.getElementById(areaId);
+      if (area) area.classList.add('has-preview');
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+setupPhotoInput('patientPhoto', 'patientPhotoPlaceholder', 'patientPhotoPreviewContainer', 'photoPreview', 'patientPhotoArea');
+setupPhotoInput('doctorPhoto', 'doctorPhotoPlaceholder', 'doctorPhotoPreviewContainer', 'doctorPhotoPreview', 'doctorPhotoArea');
+setupPhotoInput('adminPhoto', 'adminPhotoPlaceholder', 'adminPhotoPreviewContainer', 'adminPhotoPreview', 'adminPhotoArea');
+
+// Doctor proof
+const doctorProofInput = document.getElementById('doctorProof');
+if (doctorProofInput) {
+  doctorProofInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showNotification('File must be less than 10MB', 'error'); this.value = ''; return;
+    }
+    const nameEl = document.getElementById('doctorProofName');
+    const labelEl = document.getElementById('doctorProofLabel');
+    nameEl.textContent = file.name;
+    nameEl.style.display = 'block';
+    if (labelEl) labelEl.textContent = 'Document selected';
+    document.getElementById('doctorProofArea').classList.add('has-file');
+  });
+}
+
+// ===== ASSESSMENT QUESTIONS =====
+const assessmentQuestions = {
+  en: [
+    { question: "How often do you feel overwhelmed by daily tasks?", options: ["Never", "Rarely", "Sometimes", "Often", "Always"] },
+    { question: "Do you have trouble sleeping?", options: ["Never", "Rarely", "Sometimes", "Often", "Always"] },
+    { question: "How often do you feel anxious?", options: ["Never", "Rarely", "Sometimes", "Often", "Always"] }
+  ],
+  ta: [
+    { question: "தினசரி பணிகளால் எவ்வளவு அடிக்கடி நீங்கள் அழுத்தம் உணர்கிறீர்கள்?", options: ["ஒருபோதும் இல்லை", "அரிதாக", "சில நேரங்களில்", "அடிக்கடி", "எப்போதும்"] },
+    { question: "உங்களுக்கு தூங்குவதில் சிரமம் உள்ளதா?", options: ["ஒருபோதும் இல்லை", "அரிதாக", "சில நேரங்களில்", "அடிக்கடி", "எப்போதும்"] },
+    { question: "எவ்வளவு அடிக்கடி நீங்கள் கவலையாக உணர்கிறீர்கள்?", options: ["ஒருபோதும் இல்லை", "அரிதாக", "சில நேரங்களில்", "அடிக்கடி", "எப்போதும்"] }
+  ]
+};
+
+function loadAssessmentQuestions() {
+  const container = document.getElementById('assessmentQuestions');
+  if (!container) return;
+  const questions = assessmentQuestions[currentLanguage];
+  container.innerHTML = questions.map((q, i) => `
+    <div class="question-card">
+      <h4>${i + 1}. ${q.question}</h4>
+      <div class="options-grid">
+        ${q.options.map((opt, oi) => `
+          <label class="option-label">
+            <input type="radio" name="q${i}" value="${oi}" required>
+            <span class="option-chip">${opt}</span>
+          </label>
+        `).join('')}
       </div>
     </div>
-  </div>
+  `).join('');
+}
 
-  <div id="notification" class="notification"></div>
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('lang-btn')) {
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentLanguage = e.target.dataset.lang;
+    loadAssessmentQuestions();
+  }
+});
 
-  <script src="js/main.js"></script>
+// ===== LOAD DOCTORS =====
+async function loadDoctors() {
+  try {
+    const response = await fetch(`${API_URL}/doctors/available`);
+    const doctors = await response.json();
+    const container = document.getElementById('doctorsList');
+    if (!container) return;
+    if (!doctors || doctors.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No doctors available at this time.</p>';
+      return;
+    }
+    container.innerHTML = doctors.map(d => `
+      <div class="doctor-card" data-doctor-id="${d._id}">
+        <img src="${d.profilePhoto || ''}" alt="${d.name}" onerror="this.style.display='none'">
+        <h4>${d.name}</h4>
+        <p>${d.specialization}</p>
+        <p>${d.timeSlot || ''}</p>
+      </div>
+    `).join('');
+    document.querySelectorAll('.doctor-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.doctor-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedDoctorId = card.dataset.doctorId;
+      });
+    });
+  } catch (err) {
+    console.error('Error loading doctors:', err);
+  }
+}
+
+// ===== PATIENT REGISTRATION =====
+const patientStep1Form = document.getElementById('patientStep1');
+if (patientStep1Form) {
+  patientStep1Form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('patientName').value,
+      dob: document.getElementById('patientDob').value,
+      gender: document.getElementById('patientGender').value,
+      address: document.getElementById('patientAddress').value,
+      phone: document.getElementById('patientPhone').value,
+      email: document.getElementById('patientEmail').value,
+      password: document.getElementById('patientPassword').value
+    };
+    try {
+      const res = await fetch(`${API_URL}/patient/register/step1`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      if (result.success) { tempUserId = result.patientId; nextStep(); }
+      else showNotification(result.error, 'error');
+    } catch { showNotification('Registration failed. Please try again.', 'error'); }
+  });
+}
+
+const patientStep2Form = document.getElementById('patientStep2');
+if (patientStep2Form) {
+  patientStep2Form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById('patientPhoto');
+    if (!fileInput.files || !fileInput.files[0]) { showNotification('Please upload a profile photo', 'error'); return; }
+    const formData = new FormData();
+    formData.append('patientId', tempUserId);
+    formData.append('uploadType', 'profile');
+    formData.append('profilePhoto', fileInput.files[0]);
+    try {
+      const res = await fetch(`${API_URL}/patient/register/step2`, { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) { showNotification('Photo uploaded!', 'success'); nextStep(); }
+      else showNotification(result.error, 'error');
+    } catch { showNotification('Upload failed. Please try again.', 'error'); }
+  });
+}
+
+const patientStep3Form = document.getElementById('patientStep3');
+if (patientStep3Form) {
+  patientStep3Form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedDoctorId) { showNotification('Please select a doctor', 'error'); return; }
+    const answers = {};
+    document.querySelectorAll('[name^="q"]').forEach(input => { if (input.checked) answers[input.name] = input.value; });
+    const data = { patientId: tempUserId, stressAssessment: answers, selectedDoctor: selectedDoctorId };
+    try {
+      const res = await fetch(`${API_URL}/patient/register/step3`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      if (result.success) {
+        showNotification('Registration completed successfully!', 'success');
+        setTimeout(() => { document.getElementById('registerSection').classList.remove('active'); document.getElementById('loginSection').classList.add('active'); resetRegistrationForms(); }, 2000);
+      }
+    } catch { showNotification('Registration failed. Please try again.', 'error'); }
+  });
+}
+
+// ===== DOCTOR REGISTRATION =====
+const doctorStep1Form = document.getElementById('doctorStep1');
+if (doctorStep1Form) {
+  doctorStep1Form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('doctorName').value,
+      specialization: document.getElementById('doctorSpec').value,
+      timeSlot: document.getElementById('doctorTimeSlot').value,
+      dob: document.getElementById('doctorDob').value,
+      phone: document.getElementById('doctorPhone').value,
+      email: document.getElementById('doctorEmail').value,
+      password: document.getElementById('doctorPassword').value
+    };
+    try {
+      const res = await fetch(`${API_URL}/doctor/register/step1`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      if (result.success) { tempUserId = result.doctorId; nextStep(); }
+      else showNotification(result.error, 'error');
+    } catch { showNotification('Registration failed. Please try again.', 'error'); }
+  });
+}
+
+const doctorStep2Form = document.getElementById('doctorStep2');
+if (doctorStep2Form) {
+  doctorStep2Form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const photoInput = document.getElementById('doctorPhoto');
+    const proofInput = document.getElementById('doctorProof');
+    if (!photoInput.files || !photoInput.files[0]) { showNotification('Please upload a profile photo', 'error'); return; }
+    if (!proofInput.files || !proofInput.files[0]) { showNotification('Please upload your medical certificate', 'error'); return; }
+    const formData = new FormData();
+    formData.append('doctorId', tempUserId);
+    formData.append('profilePhoto', photoInput.files[0]);
+    formData.append('proof', proofInput.files[0]);
+    try {
+      const res = await fetch(`${API_URL}/doctor/register/step2`, { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) {
+        showNotification('Registration request submitted for approval!', 'success');
+        setTimeout(() => { document.getElementById('registerSection').classList.remove('active'); document.getElementById('loginSection').classList.add('active'); resetRegistrationForms(); }, 2000);
+      } else showNotification(result.error || 'Registration failed', 'error');
+    } catch { showNotification('Upload failed. Please try again.', 'error'); }
+  });
+}
+
+// ===== ADMIN REGISTRATION =====
+const adminStep1Form = document.getElementById('adminStep1');
+if (adminStep1Form) {
+  adminStep1Form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = { name: document.getElementById('adminName').value, email: document.getElementById('adminEmail').value, password: document.getElementById('adminPassword').value };
+    try {
+      const res = await fetch(`${API_URL}/admin/register/step1`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      if (result.success) { tempUserId = result.adminId; nextStep(); }
+      else showNotification(result.error, 'error');
+    } catch { showNotification('Registration failed. Please try again.', 'error'); }
+  });
+}
+
+const adminStep2Form = document.getElementById('adminStep2');
+if (adminStep2Form) {
+  adminStep2Form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById('adminPhoto');
+    if (!fileInput.files || !fileInput.files[0]) { showNotification('Please upload a profile photo', 'error'); return; }
+    const formData = new FormData();
+    formData.append('adminId', tempUserId);
+    formData.append('uploadType', 'profile');
+    formData.append('profilePhoto', fileInput.files[0]);
+    try {
+      const res = await fetch(`${API_URL}/admin/register/step2`, { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) { showNotification('Photo uploaded!', 'success'); nextStep(); }
+      else showNotification(result.error || 'Upload failed', 'error');
+    } catch { showNotification('Upload failed. Please try again.', 'error'); }
+  });
+}
+
+const adminStep3Form = document.getElementById('adminStep3');
+if (adminStep3Form) {
+  adminStep3Form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = { adminId: tempUserId, secretKey: document.getElementById('adminSecret').value };
+    try {
+      const res = await fetch(`${API_URL}/admin/register/step3`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      if (result.success) {
+        showNotification('Admin registration completed!', 'success');
+        setTimeout(() => { document.getElementById('registerSection').classList.remove('active'); document.getElementById('loginSection').classList.add('active'); resetRegistrationForms(); }, 2000);
+      } else showNotification(result.error, 'error');
+    } catch { showNotification('Invalid secret key', 'error'); }
+  });
+}
+
+// ===== LOGIN =====
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const role = document.getElementById('loginRole').value;
+    if (!role) { showNotification('Please select your role', 'error'); return; }
+    const data = {
+      email: document.getElementById('loginEmail').value,
+      password: document.getElementById('loginPassword').value,
+      role
+    };
+    const btn = loginForm.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Signing in...';
+    try {
+      const res = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      if (result.success) {
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        showNotification('Login successful!', 'success');
+        setTimeout(() => {
+          if (role === 'patient') window.location.href = 'patientdashboard.html';
+          else if (role === 'doctor') window.location.href = 'doctordashboard.html';
+          else if (role === 'admin') window.location.href = 'admin.html';
+        }, 1000);
+      } else showNotification(result.error, 'error');
+    } catch { showNotification('Login failed. Please try again.', 'error'); }
+    finally { btn.disabled = false; btn.textContent = 'Sign In'; }
+  });
+}
+
+// ===== RESET =====
+function resetRegistrationForms() {
+  currentStep = 1;
+  currentRole = '';
+  tempUserId = '';
+  selectedDoctorId = '';
+  document.querySelectorAll('.register-form').forEach(f => f.style.display = 'none');
+  document.querySelectorAll('.step-form').forEach(f => f.classList.remove('active'));
+  document.querySelectorAll('form').forEach(f => f.reset());
+  document.getElementById('roleSelection').style.display = 'block';
+  // Reset step circles
+  ['p','d','a'].forEach(prefix => {
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById(`${prefix}-step-${i}`);
+      if (el) { el.className = 'step-circle' + (i === 1 ? ' active' : ''); el.textContent = i; }
+      const line = document.getElementById(`${prefix}-line-${i}`);
+      if (line) line.classList.remove('completed');
+    }
+  });
+  // Reset previews
+  ['patientPhoto','doctorPhoto','adminPhoto'].forEach(id => {
+    const inp = document.getElementById(id);
+    if (inp) inp.value = '';
+  });
+  ['patientPhotoPlaceholder','doctorPhotoPlaceholder','adminPhotoPlaceholder'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'block';
+  });
+  ['patientPhotoPreviewContainer','doctorPhotoPreviewContainer','adminPhotoPreviewContainer'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+}
+
+// ===== NOTIFICATION =====
+function showNotification(message, type = 'success') {
+  const n = document.getElementById('notification');
+  n.textContent = message;
+  n.className = `notification ${type} show`;
+  setTimeout(() => n.classList.remove('show'), 3500);
+}
+</script>
 </body>
 </html>

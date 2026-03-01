@@ -4,457 +4,2836 @@
   <meta charset="UTF-8">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patient Dashboard - Mental Health System</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <title>Patient Dashboard — MindCare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===========================
+       CSS VARIABLES
+    =========================== */
+    :root {
+      --primary: #1a6b5a;
+      --primary-light: #2d9c82;
+      --primary-dark: #0f4438;
+      --primary-alpha: rgba(26,107,90,0.1);
+      --accent: #e8f5f1;
+
+      --danger: #e03d3d;
+      --danger-light: rgba(224,61,61,0.1);
+      --warning: #d97706;
+      --warning-light: rgba(217,119,6,0.1);
+      --success: #16a34a;
+      --success-light: rgba(22,163,74,0.1);
+      --info: #2563eb;
+      --info-light: rgba(37,99,235,0.1);
+
+      --bg-page: #f0f4f3;
+      --bg-card: #ffffff;
+      --bg-input: #f7f9f8;
+      --bg-panel: #eef3f1;
+      --bg-sidebar: #ffffff;
+      --bg-chat: #e6eeec;
+
+      --text-primary: #111c1a;
+      --text-secondary: #4a6260;
+      --text-muted: #8aaba7;
+      --text-on-primary: #ffffff;
+
+      --border: #d5e3e0;
+      --border-focus: #1a6b5a;
+
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+
+      --sidebar-width: 260px;
+      --topbar-height: 0px;
+      --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-fast: 0.15s ease;
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #0c1513;
+      --bg-card: #131f1c;
+      --bg-input: #1a2622;
+      --bg-panel: #182320;
+      --bg-sidebar: #0f1a17;
+      --bg-chat: #0a1210;
+
+      --text-primary: #e2eeec;
+      --text-secondary: #7aada7;
+      --text-muted: #4a706a;
+
+      --border: #1f3330;
+      --border-focus: #2d9c82;
+      --accent: #12201d;
+
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.6);
+    }
+
+    /* ===========================
+       RESET & BASE
+    =========================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* ===========================
+       LAYOUT
+    =========================== */
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ===========================
+       SIDEBAR
+    =========================== */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 100;
+      transition: transform var(--transition), background var(--transition);
+      overflow: hidden;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand-mark {
+      width: 34px; height: 34px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand-mark svg {
+      width: 18px; height: 18px;
+      stroke: white; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .sidebar-brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 17px;
+      color: var(--text-primary);
+    }
+
+    .sidebar-profile {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-profile-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      background: var(--bg-panel);
+    }
+
+    .sidebar-profile-info h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .sidebar-profile-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Navigation */
+    .nav-section {
+      padding: 10px 0;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-menu { list-style: none; }
+
+    .nav-item { margin: 1px 8px; }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      background: var(--bg-panel);
+      color: var(--text-primary);
+    }
+
+    .nav-link.active {
+      background: var(--primary-alpha);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-link .nav-icon {
+      width: 18px; height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .nav-item-logout .nav-link {
+      color: var(--danger);
+    }
+    .nav-item-logout .nav-link:hover {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .theme-toggle-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all var(--transition-fast);
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      background: var(--accent);
+      color: var(--primary);
+    }
+
+    .theme-toggle-btn svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round;
+    }
+
+    .icon-sun, .icon-moon { display: none; }
+    [data-theme="light"] .icon-sun { display: block; }
+    [data-theme="dark"] .icon-moon { display: block; }
+    [data-theme="light"] .theme-label-dark { display: none; }
+    [data-theme="dark"] .theme-label-light { display: none; }
+
+    /* Mobile Hamburger */
+    .mobile-topbar {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      z-index: 99;
+      padding: 0 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mobile-brand {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      color: var(--primary);
+    }
+
+    .hamburger-btn {
+      width: 38px; height: 38px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .hamburger-btn svg {
+      width: 18px; height: 18px;
+      stroke: var(--text-secondary); fill: none; stroke-width: 2;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 99;
+    }
+
+    /* ===========================
+       MAIN CONTENT
+    =========================== */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      min-height: 100vh;
+      padding: 32px;
+    }
+
+    /* ===========================
+       CONTENT SECTIONS
+    =========================== */
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(22px, 2.5vw, 30px);
+      color: var(--text-primary);
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .page-header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* ===========================
+       CARDS
+    =========================== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 18px;
+    }
+
+    /* Stat Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .stat-card-icon svg {
+      width: 20px; height: 20px;
+      stroke: white; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .stat-card-icon.green { background: var(--primary); }
+    .stat-card-icon.blue { background: var(--info); }
+    .stat-card-icon.amber { background: var(--warning); }
+    .stat-card-icon.teal { background: #0891b2; }
+
+    .stat-card-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-card-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-card-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* ===========================
+       BUTTONS
+    =========================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn svg {
+      width: 15px; height: 15px;
+      stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,107,90,0.3); }
+
+    .btn-secondary { background: var(--bg-panel); color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); color: var(--text-primary); }
+
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #c53030; }
+
+    .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+    .btn-outline:hover { background: var(--primary-alpha); }
+
+    .btn-sm { padding: 7px 14px; font-size: 12.5px; }
+
+    /* ===========================
+       QUICK ACTIONS
+    =========================== */
+    .quick-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ===========================
+       FORM ELEMENTS
+    =========================== */
+    .form-group { margin-bottom: 18px; }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+      letter-spacing: 0.02em;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      transition: all var(--transition);
+      outline: none;
+      appearance: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus);
+      background: var(--bg-card);
+      box-shadow: 0 0 0 3px var(--primary-alpha);
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+    textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238aaba7' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .range-value-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .range-value-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .range-value-denom {
+      font-size: 16px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ===========================
+       TODO LIST
+    =========================== */
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      background: var(--bg-card);
+      transition: all var(--transition);
+    }
+
+    .todo-item:hover { border-color: var(--primary-light); }
+
+    .todo-item.completed { opacity: 0.65; }
+
+    .todo-checkbox {
+      width: 18px; height: 18px;
+      border-radius: 5px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      accent-color: var(--primary);
+    }
+
+    .todo-label {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .todo-item.completed .todo-label {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .todo-reason {
+      font-size: 12px;
+      color: var(--danger);
+      font-style: italic;
+    }
+
+    /* Task input add form */
+    .task-input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .task-input-row input { flex: 1; }
+
+    /* ===========================
+       MOOD SELECTOR
+    =========================== */
+    .mood-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mood-btn {
+      flex: 1;
+      min-width: 80px;
+      padding: 16px 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mood-btn:hover {
+      border-color: var(--primary-light);
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .mood-btn.active {
+      border-color: var(--primary);
+      background: var(--accent);
+      box-shadow: 0 0 0 3px var(--primary-alpha);
+    }
+
+    .mood-icon {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+    }
+
+    .mood-icon svg {
+      width: 22px; height: 22px;
+      fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .mood-happy .mood-icon { background: rgba(251,191,36,0.15); }
+    .mood-happy .mood-icon svg { stroke: #d97706; }
+    .mood-neutral .mood-icon { background: rgba(99,102,241,0.12); }
+    .mood-neutral .mood-icon svg { stroke: #6366f1; }
+    .mood-sad .mood-icon { background: rgba(59,130,246,0.12); }
+    .mood-sad .mood-icon svg { stroke: #3b82f6; }
+    .mood-stressed .mood-icon { background: rgba(239,68,68,0.12); }
+    .mood-stressed .mood-icon svg { stroke: #ef4444; }
+    .mood-tired .mood-icon { background: rgba(107,114,128,0.12); }
+    .mood-tired .mood-icon svg { stroke: #6b7280; }
+
+    .mood-btn.active.mood-happy { border-color: #d97706; }
+    .mood-btn.active.mood-neutral { border-color: #6366f1; }
+    .mood-btn.active.mood-sad { border-color: #3b82f6; }
+    .mood-btn.active.mood-stressed { border-color: #ef4444; }
+    .mood-btn.active.mood-tired { border-color: #6b7280; }
+
+    .mood-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* ===========================
+       WELLNESS ENTRIES
+    =========================== */
+    .wellness-entry {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 12px;
+      background: var(--bg-card);
+    }
+
+    .wellness-entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .wellness-date {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .mood-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--bg-panel);
+      color: var(--text-secondary);
+    }
+
+    .wellness-stats-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .wellness-stat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .wellness-stat svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; fill: none; stroke-width: 2;
+    }
+
+    .wellness-notes-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-style: italic;
+      padding-left: 12px;
+      border-left: 3px solid var(--primary-light);
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    /* ===========================
+       RESOURCES
+    =========================== */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      background: var(--bg-card);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-btn svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; fill: none; stroke-width: 2;
+    }
+
+    .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .filter-btn.active { border-color: var(--primary); background: var(--primary-alpha); color: var(--primary); font-weight: 600; }
+
+    .resource-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all var(--transition);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .resource-card:hover {
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .resource-type-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .resource-type-icon svg {
+      width: 22px; height: 22px;
+      stroke: white; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .resource-type-icon.audio-icon { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+    .resource-type-icon.video-icon { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+    .resource-type-icon.article-icon { background: linear-gradient(135deg, #d97706, #f59e0b); }
+
+    .resource-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .resource-badge {
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .resource-badge.audio { background: rgba(124,58,237,0.12); color: #7c3aed; }
+    .resource-badge.video { background: rgba(8,145,178,0.12); color: #0891b2; }
+    .resource-badge.article { background: rgba(217,119,6,0.12); color: #d97706; }
+
+    .resource-date { font-size: 11.5px; color: var(--text-muted); }
+
+    .resource-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .resource-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    /* ===========================
+       TELECOUNSELING / CHAT
+    =========================== */
+    .telecounseling-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .chat-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 620px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+      flex-shrink: 0;
+    }
+
+    .chat-header-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      background: var(--bg-panel);
+    }
+
+    .chat-header-info h3 {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .chat-header-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .online-dot {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    /* Call buttons */
+    .call-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .call-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bg-input);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+    }
+
+    .call-btn svg {
+      width: 17px; height: 17px;
+      fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .call-btn-audio { border-color: rgba(22,163,74,0.3); }
+    .call-btn-audio svg { stroke: var(--success); }
+    .call-btn-audio:hover { background: var(--success-light); border-color: var(--success); }
+
+    .call-btn-video { border-color: rgba(37,99,235,0.3); }
+    .call-btn-video svg { stroke: var(--info); }
+    .call-btn-video:hover { background: var(--info-light); border-color: var(--info); }
+
+    /* Chat messages */
+    .chat-messages {
+      flex: 1;
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--bg-chat);
+    }
+
+    /* Sent messages align RIGHT, received align LEFT — clear visual separation */
+    .chat-msg {
+      display: flex;
+      gap: 8px;
+      max-width: 75%;
+    }
+
+    .chat-msg.sent {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-msg.received {
+      align-self: flex-start;
+      flex-direction: row;
+    }
+
+    .msg-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--bg-panel);
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+      align-self: flex-end;
+    }
+
+    /* Message content wrapper */
+    .msg-content {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .chat-msg.sent .msg-content { align-items: flex-end; }
+    .chat-msg.received .msg-content { align-items: flex-start; }
+
+    .msg-sender {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      padding: 0 4px;
+    }
+
+    .msg-bubble {
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.55;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+    /* RECEIVED — white card with border, tail on left */
+    .chat-msg.received .msg-bubble {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* SENT — teal primary, tail on right */
+    .chat-msg.sent .msg-bubble {
+      background: var(--primary);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 1px 4px rgba(26,107,90,0.25);
+    }
+
+    .msg-time {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      padding: 0 4px;
+    }
+
+    .chat-msg.sent .msg-time { text-align: right; }
+    .chat-msg.received .msg-time { text-align: left; }
+
+    /* ═══════════════════════════════════════════════
+       VOICE MESSAGE BUBBLE  (custom wave-player UI)
+       Used by the static demo bubbles in HTML
+    ═══════════════════════════════════════════════ */
+    .voice-msg-bubble {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: 20px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      min-width: 260px;
+      max-width: 320px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .voice-msg-play {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.18s ease, transform 0.15s ease;
+    }
+
+    .voice-msg-play:hover {
+      background: var(--primary-dark);
+      transform: scale(1.07);
+    }
+
+    .voice-msg-play svg {
+      width: 18px; height: 18px;
+      stroke: white; fill: none;
+      stroke-width: 2; stroke-linecap: round;
+    }
+
+    .voice-wave {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+      height: 34px;
+    }
+
+    .voice-wave-bar {
+      width: 3px;
+      background: var(--primary-light);
+      border-radius: 3px;
+      animation: wave 1.2s ease-in-out infinite;
+    }
+
+    .voice-wave-bar:nth-child(1)  { height: 10px; animation-delay: 0.0s; }
+    .voice-wave-bar:nth-child(2)  { height: 20px; animation-delay: 0.1s; }
+    .voice-wave-bar:nth-child(3)  { height: 14px; animation-delay: 0.2s; }
+    .voice-wave-bar:nth-child(4)  { height: 28px; animation-delay: 0.3s; }
+    .voice-wave-bar:nth-child(5)  { height: 18px; animation-delay: 0.4s; }
+    .voice-wave-bar:nth-child(6)  { height: 24px; animation-delay: 0.5s; }
+    .voice-wave-bar:nth-child(7)  { height: 12px; animation-delay: 0.6s; }
+    .voice-wave-bar:nth-child(8)  { height: 16px; animation-delay: 0.7s; }
+
+    @keyframes wave {
+      0%, 100% { transform: scaleY(1);   opacity: 0.5; }
+      50%       { transform: scaleY(1.8); opacity: 1;   }
+    }
+
+    .voice-duration {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════════════
+       CUSTOM VOICE MESSAGE PLAYER
+       Medium-sized, no black browser chrome.
+       Works on both sent (teal) and received (white) bubbles.
+       ═══════════════════════════════════════════════ */
+
+    /* The bubble card — always white/card bg, never teal or black */
+    .voice-bubble {
+      background: var(--bg-card) !important;
+      border: 1.5px solid var(--border) !important;
+      border-radius: 18px !important;
+      padding: 14px 16px 12px !important;
+      min-width: 300px !important;
+      max-width: 360px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+    }
+
+    /* Sent voice bubble: keep white card, remove teal override */
+    .message.sent .voice-bubble {
+      color: var(--text-primary) !important;
+      border-bottom-right-radius: 4px !important;
+    }
+
+    .message.received .voice-bubble {
+      border-bottom-left-radius: 4px !important;
+    }
+
+    /* Top row: play button + waveform + duration */
+    .vp-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Play/pause button */
+    .vp-play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.18s, transform 0.15s;
+    }
+
+    .vp-play-btn:hover {
+      background: var(--primary-dark);
+      transform: scale(1.07);
+    }
+
+    .vp-play-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: white;
+    }
+
+    /* Track: progress bar + waveform bars (stacked) */
+    .vp-track {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    /* Clickable progress bar */
+    .vp-progress-wrap {
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .vp-progress-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 4px;
+      transition: width 0.1s linear;
+      pointer-events: none;
+    }
+
+    /* Waveform bars */
+    .vp-wave {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 28px;
+    }
+
+    .vp-bar {
+      display: inline-block;
+      width: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+
+    .vp-wave.playing .vp-bar {
+      background: var(--primary-light);
+      animation: vpWave 1.1s ease-in-out infinite;
+    }
+
+    .vp-wave.playing .vp-bar:nth-child(odd)  { animation-delay: 0.0s; }
+    .vp-wave.playing .vp-bar:nth-child(even) { animation-delay: 0.18s; }
+    .vp-wave.playing .vp-bar:nth-child(3n)   { animation-delay: 0.36s; }
+    .vp-wave.playing .vp-bar:nth-child(4n)   { animation-delay: 0.54s; }
+
+    @keyframes vpWave {
+      0%, 100% { transform: scaleY(0.6); opacity: 0.6; }
+      50%       { transform: scaleY(1.4); opacity: 1;   }
+    }
+
+    /* Duration counter */
+    .vp-duration {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      min-width: 32px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Bottom meta row: label + timestamp */
+    .vp-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 2px;
+    }
+
+    .vp-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .vp-label svg { flex-shrink: 0; stroke: var(--text-muted); }
+
+    .vp-time-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Remove any browser native <audio> that might slip through */
+    .voice-bubble audio { display: none !important; }
+
+    /* Chat input */
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 10px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: all var(--transition);
+    }
+
+    .chat-input:focus {
+      border-color: var(--border-focus);
+      background: var(--bg-card);
+      box-shadow: 0 0 0 3px var(--primary-alpha);
+    }
+
+    .chat-input::placeholder { color: var(--text-muted); }
+
+    .voice-record-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--bg-input);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+
+    .voice-record-btn svg {
+      width: 17px; height: 17px;
+      stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .voice-record-btn:hover {
+      border-color: var(--danger);
+      background: var(--danger-light);
+    }
+
+    .voice-record-btn:hover svg { stroke: var(--danger); }
+
+    .voice-record-btn.recording {
+      border-color: var(--danger);
+      background: var(--danger-light);
+      animation: pulse 1s infinite;
+    }
+
+    .voice-record-btn.recording svg { stroke: var(--danger); }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(224,61,61,0.3); }
+      50% { box-shadow: 0 0 0 6px rgba(224,61,61,0); }
+    }
+
+    .send-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+
+    .send-btn svg {
+      width: 16px; height: 16px;
+      stroke: white; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .send-btn:hover { background: var(--primary-dark); transform: scale(1.05); }
+
+    /* ===========================
+       CHATBOT
+    =========================== */
+    .chatbot-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chatbot-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 22px;
+      background: var(--primary);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .chatbot-avatar {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .chatbot-avatar svg {
+      width: 24px; height: 24px;
+      stroke: white; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .chatbot-header-text h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .chatbot-header-text p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 2px;
+    }
+
+    .chatbot-status-pill {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 100px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.9);
+      font-weight: 500;
+    }
+
+    .chatbot-status-dot {
+      width: 7px; height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+    }
+
+    .chatbot-messages {
+      padding: 24px;
+      min-height: 380px;
+      max-height: 420px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: var(--bg-chat);
+    }
+
+    .chatbot-welcome-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .chatbot-welcome-icon {
+      width: 56px; height: 56px;
+      background: var(--primary-alpha);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+    }
+
+    .chatbot-welcome-icon svg {
+      width: 28px; height: 28px;
+      stroke: var(--primary); fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .chatbot-welcome-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .chatbot-welcome-card p {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .bot-msg-row { display: flex; gap: 10px; align-items: flex-end; }
+    .user-msg-row { display: flex; gap: 10px; align-items: flex-end; justify-content: flex-end; }
+
+    .bot-icon {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .bot-icon svg {
+      width: 16px; height: 16px;
+      stroke: white; fill: none; stroke-width: 2;
+    }
+
+    .bot-bubble {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text-primary);
+      line-height: 1.6;
+      max-width: 75%;
+    }
+
+    .user-bubble {
+      background: var(--primary);
+      color: white;
+      border-radius: 16px;
+      border-bottom-right-radius: 4px;
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 75%;
+    }
+
+    /* Quick replies */
+    .quick-replies {
+      padding: 10px 16px 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: var(--bg-chat);
+      border-top: 1px solid var(--border);
+    }
+
+    .quick-reply-chip {
+      padding: 7px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      background: var(--bg-card);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .quick-reply-chip:hover {
+      border-color: var(--primary);
+      background: var(--primary-alpha);
+      color: var(--primary);
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+    }
+
+    .typing-dots span {
+      width: 7px; height: 7px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: typingDot 1.4s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingDot {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Chatbot input */
+    .chatbot-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    /* ===========================
+       PROGRESS / CHARTS
+    =========================== */
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .chart-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .chart-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .chart-canvas-wrap {
+      position: relative;
+      height: 280px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .summary-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      margin-bottom: 8px;
+    }
+
+    .summary-stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .summary-stat-value {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .val-good { color: var(--success); }
+    .val-warn { color: var(--warning); }
+    .val-bad { color: var(--danger); }
+    .val-primary { color: var(--primary); }
+
+    /* ===========================
+       APPOINTMENTS
+    =========================== */
+    .appointment-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .appt-date-block {
+      text-align: center;
+      background: var(--primary-alpha);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      flex-shrink: 0;
+      min-width: 64px;
+    }
+
+    .appt-date-month {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+    }
+
+    .appt-date-day {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .appt-info { flex: 1; }
+
+    .appt-info h4 {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .appt-meta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .appt-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .appt-meta-item svg {
+      width: 13px; height: 13px;
+      stroke: currentColor; fill: none; stroke-width: 2;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .status-pill.pending { background: var(--warning-light); color: var(--warning); }
+    .status-pill.approved { background: var(--success-light); color: var(--success); }
+    .status-pill.rejected { background: var(--danger-light); color: var(--danger); }
+
+    /* ===========================
+       COMPLAINT
+    =========================== */
+    .complaint-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin-bottom: 12px;
+      background: var(--bg-card);
+    }
+
+    .complaint-card.pending { border-left: 3px solid var(--warning); }
+    .complaint-card.resolved { border-left: 3px solid var(--success); }
+
+    /* ===========================
+       VIDEO CALL MODAL
+    =========================== */
+    .modal {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .video-call-modal {
+      background: #0a0a0a;
+      border-radius: var(--radius-lg);
+      width: min(92vw, 860px);
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+    }
+
+    .video-container {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: #1a1a1a;
+    }
+
+    #remoteVideo, #remoteVideoDoctor {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    #localVideo, #localVideoDoctor {
+      position: absolute;
+      bottom: 16px; right: 16px;
+      width: 160px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.2);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    .audio-only-indicator {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px;
+      color: white;
+    }
+
+    .audio-only-indicator .avatar {
+      width: 80px; height: 80px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+    }
+
+    .audio-only-indicator .name { font-size: 20px; font-weight: 600; }
+    .audio-only-indicator .status { font-size: 14px; color: rgba(255,255,255,0.6); }
+
+    .call-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 20px;
+      background: #111;
+    }
+
+    .call-ctrl-btn {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      color: white;
+      font-weight: 600;
+      flex-direction: column;
+      gap: 4px;
+      transition: all var(--transition);
+    }
+
+    .call-ctrl-btn svg {
+      width: 20px; height: 20px;
+      stroke: white; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    .call-ctrl-btn.mute { background: #333; }
+    .call-ctrl-btn.mute:hover { background: #444; }
+    .call-ctrl-btn.end-call { background: #e03d3d; width: 60px; height: 60px; }
+    .call-ctrl-btn.end-call:hover { background: #c53030; transform: scale(1.05); }
+    .call-ctrl-btn.video-off { background: #333; }
+    .call-ctrl-btn.video-off:hover { background: #444; }
+
+    /* ── Telecounseling: bridge CSS for telecommunication.js legacy class names ──
+       telecommunication.js creates:  div.message.sent  /  div.message.received
+       each containing div.message-bubble
+       We map these to our design tokens so alignment + colors work correctly.
+    */
+    .message {
+      display: flex;
+      max-width: 75%;
+      margin-bottom: 6px;
+    }
+
+    .message.sent {
+      align-self: flex-end;
+      margin-left: auto;
+      flex-direction: row-reverse;
+    }
+
+    .message.received {
+      align-self: flex-start;
+      margin-right: auto;
+      flex-direction: row;
+    }
+
+    .message-bubble {
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    /* Received — white card */
+    .message.received .message-bubble {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* Sent — teal primary */
+    .message.sent .message-bubble {
+      background: var(--primary);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 1px 4px rgba(26,107,90,0.25);
+    }
+
+    /* timestamp inside message-bubble */
+    .message.sent .message-bubble .timestamp,
+    .message.sent .message-bubble .message-meta {
+      color: rgba(255,255,255,0.7) !important;
+    }
+
+    .message.received .message-bubble .timestamp,
+    .message.received .message-bubble .message-meta {
+      color: var(--text-muted) !important;
+    }
+
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .empty-state-icon {
+      width: 56px; height: 56px;
+      background: var(--bg-panel);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .empty-state-icon svg {
+      width: 28px; height: 28px;
+      stroke: var(--text-muted); fill: none; stroke-width: 1.5; stroke-linecap: round;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .empty-state-text { font-size: 14px; color: var(--text-muted); }
+
+    /* ===========================
+       INFO BANNER
+    =========================== */
+    .info-banner {
+      background: var(--info-light);
+      border: 1px solid rgba(37,99,235,0.2);
+      border-left: 3px solid var(--info);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .info-banner svg {
+      width: 18px; height: 18px;
+      stroke: var(--info); fill: none; stroke-width: 2;
+      flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* ===========================
+       NOTIFICATION
+    =========================== */
+    .notification {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      z-index: 9999;
+      max-width: 340px;
+      pointer-events: none;
+      box-shadow: var(--shadow-md);
+    }
+
+    .notification.show { opacity: 1; transform: translateY(0); }
+
+    .notification.success { background: #d4edda; color: #155724; border-left: 3px solid #28a745; }
+    .notification.error { background: #f8d7da; color: #721c24; border-left: 3px solid #dc3545; }
+
+    [data-theme="dark"] .notification.success { background: #172920; color: #7bcc96; }
+    [data-theme="dark"] .notification.error { background: #2d1519; color: #f48c9a; }
+
+    /* ===========================
+       DIVIDER
+    =========================== */
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    /* ===========================
+       UTILS
+    =========================== */
+    .mt-16 { margin-top: 16px; }
+    .mt-20 { margin-top: 20px; }
+    .mb-16 { margin-bottom: 16px; }
+
+    /* ===========================
+       RESPONSIVE
+    =========================== */
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 900px) {
+      :root { --sidebar-width: 0px; }
+
+      .sidebar {
+        transform: translateX(-260px);
+        width: 260px;
+      }
+
+      .sidebar.open { transform: translateX(0); }
+
+      .sidebar-overlay.show { display: block; }
+
+      .mobile-topbar { display: flex; }
+
+      .main-content {
+        margin-left: 0;
+        padding: 80px 20px 20px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .mood-selector { gap: 6px; }
+      .mood-btn { min-width: 60px; padding: 12px 6px 10px; }
+      .chat-wrapper { height: 520px; }
+    }
+
+    @media (max-width: 400px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .main-content { padding: 72px 14px 14px; }
+    }
+  </style>
 </head>
 <body>
-  <div class="theme-toggle">
-    <button id="themeToggle">🌙</button>
-  </div>
 
-  <div class="dashboard">
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <img src="" alt="Profile" class="profile-photo-small" id="profilePhoto">
-        <h3 id="userName">Loading...</h3>
-        <p id="userEmail" style="font-size: 12px; color: var(--text-secondary);"></p>
-      </div>
-      
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link active" data-section="overview">📊 Overview</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="todo">✅ To-Do List</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="wellness">💚 Daily Wellness</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="resources">📚 Resources</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="telecounseling">📬 Telecounseling</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="chatbot">🤖 Support Bot</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="appointments">📅 Appointments</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="progress">📈 Progress</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="complaint">⚠️ Complaint</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" id="logoutBtn">🚪 Logout</a>
-        </li>
-      </ul>
-    </aside>
-
-    <main class="main-content">
-      <!-- Overview Section -->
-      <section id="overviewSection" class="content-section active">
-        <div class="header">
-          <h1>Welcome Back! 👋</h1>
-          <p class="subtitle">Here's your mental health overview</p>
-        </div>
-        <div class="cards-grid">
-          <div class="card stat-card">
-            <div class="stat-icon">✅</div>
-            <h3>Today's Tasks</h3>
-            <p class="stat-number" id="todayTasksCount">0</p>
-            <small>tasks pending</small>
-          </div>
-          <div class="card stat-card">
-            <div class="stat-icon">🔥</div>
-            <h3>Wellness Streak</h3>
-            <p class="stat-number" id="wellnessStreak">0</p>
-            <small>consecutive days</small>
-          </div>
-          <div class="card stat-card">
-            <div class="stat-icon">📊</div>
-            <h3>Weekly Avg Stress</h3>
-            <p class="stat-number" id="weeklyStress">-</p>
-            <small>out of 10</small>
-          </div>
-          <div class="card stat-card">
-            <div class="stat-icon">👨‍⚕️</div>
-            <h3>Your Doctor</h3>
-            <p class="stat-number" id="doctorName">-</p>
-            <small id="doctorSpec">-</small>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Quick Actions</h3>
-          <div class="quick-actions">
-            <button class="btn btn-primary" onclick="showSection('todo')">Add Task</button>
-            <button class="btn btn-primary" onclick="showSection('wellness')">Track Wellness</button>
-            <button class="btn btn-primary" onclick="showSection('telecounseling')">Message Doctor</button>
-            <button class="btn btn-primary" onclick="showSection('appointments')">Book Appointment</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- To-Do Section -->
-      <section id="todoSection" class="content-section">
-        <div class="header">
-          <h1>Daily To-Do List</h1>
-          <button class="btn btn-primary" id="addTodoBtn">+ Add Task</button>
-        </div>
-        <div class="card">
-          <div id="todoForm" style="display:none; margin-bottom: 20px;">
-            <h3>Create Today's Tasks</h3>
-            <div id="taskInputs"></div>
-            <button class="btn btn-secondary" onclick="addTaskInput()">+ Add Another Task</button>
-            <button class="btn btn-primary" onclick="saveTodoList()" style="margin-left: 10px;">Save List</button>
-          </div>
-          <div id="todoList">
-            <p class="empty-state">No tasks for today. Click "Add Task" to create your to-do list!</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Wellness Tracker Section -->
-      <section id="wellnessSection" class="content-section">
-        <div class="header">
-          <h1>Daily Wellness Tracker</h1>
-          <p class="subtitle">Track your daily mood, sleep, and stress levels</p>
-        </div>
-        <div class="card">
-          <form id="wellnessForm">
-            <div class="form-group">
-              <label>How are you feeling today? 😊</label>
-              <div class="mood-selector">
-                <button type="button" class="mood-btn" data-mood="😊">😊<br><small>Happy</small></button>
-                <button type="button" class="mood-btn" data-mood="😐">😐<br><small>Neutral</small></button>
-                <button type="button" class="mood-btn" data-mood="😢">😢<br><small>Sad</small></button>
-                <button type="button" class="mood-btn" data-mood="😰">😰<br><small>Stressed</small></button>
-                <button type="button" class="mood-btn" data-mood="😔">😔<br><small>Tired</small></button>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Sleep Hours</label>
-                <input type="number" id="sleepHours" min="0" max="24" step="0.5" placeholder="e.g., 7.5" required>
-              </div>
-              <div class="form-group">
-                <label>Stress Level (1-10)</label>
-                <input type="range" id="stressLevel" min="1" max="10" value="5" required>
-                <div style="text-align: center; font-size: 20px; font-weight: bold; color: var(--primary-color);">
-                  <span id="stressLevelValue">5</span>/10
-                </div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Daily Notes</label>
-              <textarea id="wellnessNotes" rows="3" placeholder="How was your day? What made you happy or stressed?"></textarea>
-            </div>
-            <div class="form-group">
-              <label>
-                <input type="checkbox" id="todoCompleted">
-                I completed all my tasks today
-              </label>
-            </div>
-            <button type="submit" class="btn btn-primary">💾 Save Today's Entry</button>
-          </form>
-        </div>
-
-        <div class="card" style="margin-top: 20px;">
-          <h3>Recent Wellness Entries</h3>
-          <div id="recentWellness"></div>
-        </div>
-      </section>
-
-      <!-- Resources Section -->
-      <section id="resourcesSection" class="content-section">
-        <div class="header">
-          <h1>Awareness Resources</h1>
-          <p class="subtitle">Audio, video, and articles to support your mental health journey</p>
-        </div>
-        <div class="resource-filters">
-          <button class="filter-btn active" data-filter="all">📢 All</button>
-          <button class="filter-btn" data-filter="audio">🎵 Audio</button>
-          <button class="filter-btn" data-filter="video">🎬 Video</button>
-          <button class="filter-btn" data-filter="article">📄 Articles</button>
-        </div>
-        <div id="resourcesList" class="cards-grid">
-          <p class="empty-state">Loading resources...</p>
-        </div>
-      </section>
-
-      <!-- Telecounseling Section -->
-      <section id="telecounselingSection" class="content-section">
-        <div class="header">
-          <h1>Telecounseling</h1>
-          <p class="subtitle">Connect with your doctor</p>
-        </div>
-        <div class="telecounseling-container">
-          <div class="chat-container card">
-            <div class="chat-header">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="" alt="Doctor" id="doctorPhotoChat" class="profile-photo-small">
-                <div>
-                  <h3 id="doctorNameChat" style="margin: 0;">Loading...</h3>
-                  <small id="doctorSpecChat" style="color: var(--text-secondary);">-</small>
-                </div>
-              </div>
-              <div class="call-buttons">
-                <button class="btn btn-success" id="audioCallBtn">📞 Audio</button>
-                <button class="btn btn-primary" id="videoCallBtn">📱 Video</button>
-              </div>
-            </div>
-            <div class="chat-messages" id="chatMessages">
-              <p class="empty-state">Start a conversation with your doctor</p>
-            </div>
-            <div class="chat-input-container">
-              <input type="text" id="messageInput" placeholder="Type your message..." class="chat-input">
-              <button class="btn btn-icon" id="voiceMessageBtn" title="Record voice message">🎤</button>
-              <button class="btn btn-primary" id="sendMessageBtn">Send</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Video Call Modal -->
-        <div id="videoCallModal" class="modal" style="display: none;">
-  <div class="modal-content video-call-modal">
-    <div class="video-container">
-      <!-- Remote Video - Full Screen - MUST have autoplay and playsinline -->
-      <video id="remoteVideo" autoplay playsinline></video>
-      
-      <!-- Local Video - Corner - MUST have autoplay, muted, and playsinline -->
-      <video id="localVideo" autoplay muted playsinline></video>
-      
-      <!-- Audio Only Indicator - Shows when no video -->
-      <div class="audio-only-indicator">
-        <div class="avatar">🎤</div>
-        <div class="name">Audio Call</div>
-        <div class="status">Connected</div>
-      </div>
-    </div>
-    
-    <div class="call-controls">
-      <button class="btn btn-secondary" id="toggleAudioBtn" title="Mute/Unmute">🎤 Mute</button>
-      <button class="btn btn-danger" id="endCallBtn" title="End Call">📞 End</button>
-      <button class="btn btn-secondary" id="toggleVideoBtn" title="Video On/Off">📹 Video Off</button>
-    </div>
-  </div>
+<!-- ======= MOBILE TOPBAR ======= -->
+<div class="mobile-topbar">
+  <span class="mobile-brand">MindCare</span>
+  <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
 </div>
 
-      </section>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-      <!-- Chatbot Section -->
-      <!-- Replace the Chatbot Section in patientdashboard.html with this -->
+<div class="dashboard">
 
-<!-- Chatbot Section - Professional Design -->
-<section id="chatbotSection" class="content-section">
-  <div class="header">
-    <h1>AI Support Assistant</h1>
-    <p class="subtitle">Powered by Google Gemini - Available 24/7</p>
-  </div>
-  
-  <div class="card" style="padding: 0; overflow: hidden;">
-    <div class="chatbot-container">
-      <!-- Chatbot Header -->
-      <div class="chatbot-header">
-        <div class="chatbot-header-icon"></div>
-        <div class="chatbot-header-text">
-          <h3>MindCare AI Assistant</h3>
-          <p>Empathetic support when you need it</p>
-        </div>
-        <!-- Status Indicator -->
-        <div class="chatbot-status">
-          <span>Online</span>
+  <!-- ======= SIDEBAR ======= -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 8.5c0 2 1 3.5 2.5 4.5L8 18h8l.5-5C18 12 19 10.5 19 8.5 19 5 16 2 12 2z"/><path d="M9 13.5c.5 1 1.5 1.5 3 1.5s2.5-.5 3-1.5"/></svg>
+      </div>
+      <span class="sidebar-brand-name">MindCare</span>
+    </div>
+
+    <div class="sidebar-profile">
+      <div class="sidebar-profile-inner">
+        <img src="" alt="Profile" class="sidebar-avatar" id="profilePhoto">
+        <div class="sidebar-profile-info">
+          <h3 id="userName">Loading...</h3>
+          <p id="userEmail">Patient</p>
         </div>
       </div>
-      
-      <!-- Chatbot Messages -->
-      <div class="chatbot-messages" id="chatbotMessages">
-        <!-- Welcome Message -->
-        <div class="chatbot-welcome">
-          <div class="chatbot-welcome-icon"></div>
-          <h3>Welcome to MindCare AI</h3>
-          <p>I'm here to provide emotional support and listen to you. Share how you're feeling, and I'll do my best to help. Remember, I'm AI-powered support, not a replacement for professional care.</p>
-        </div>
-        
-        <!-- Initial Bot Message -->
-        <div class="bot-message">
-          <div class="message-bubble">
-            <p>Hello! I'm your MindCare AI Assistant. How are you feeling today? I'm here to listen and support you through whatever you're experiencing.</p>
+    </div>
+
+    <nav class="nav-section">
+      <p class="nav-label">Main Menu</p>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-section="overview">
+            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Overview
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="todo">
+            <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            To-Do List
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="wellness">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Daily Wellness
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="resources">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            Resources
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="telecounseling">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Telecounseling
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="chatbot">
+            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21l4-4 4 4"/><path d="M12 17v4"/><circle cx="8.5" cy="10" r="1.5"/><circle cx="15.5" cy="10" r="1.5"/></svg>
+            Support Bot
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="appointments">
+            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Appointments
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="progress">
+            <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Progress
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="complaint">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Complaints
+          </a>
+        </li>
+      </ul>
+
+      <div style="height: 12px;"></div>
+
+      <ul class="nav-menu">
+        <li class="nav-item nav-item-logout">
+          <a href="#" class="nav-link" id="logoutBtn">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign Out
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="theme-toggle-btn" id="themeToggle">
+        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span class="theme-label-light">Switch to Dark</span>
+        <span class="theme-label-dark">Switch to Light</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ======= MAIN CONTENT ======= -->
+  <main class="main-content">
+
+    <!-- OVERVIEW -->
+    <section id="overviewSection" class="content-section active">
+      <div class="page-header">
+        <h1>Good day</h1>
+        <p>Here's your mental health overview for today</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon green">
+            <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           </div>
+          <p class="stat-card-label">Today's Tasks</p>
+          <p class="stat-card-value" id="todayTasksCount">0</p>
+          <p class="stat-card-sub">pending tasks</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon amber">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <p class="stat-card-label">Wellness Streak</p>
+          <p class="stat-card-value" id="wellnessStreak">0</p>
+          <p class="stat-card-sub">consecutive days</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon blue">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <p class="stat-card-label">Weekly Avg Stress</p>
+          <p class="stat-card-value" id="weeklyStress">—</p>
+          <p class="stat-card-sub">out of 10</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon teal">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <p class="stat-card-label">Your Doctor</p>
+          <p class="stat-card-value" id="doctorName" style="font-size:18px; margin-top:4px;">—</p>
+          <p class="stat-card-sub" id="doctorSpec">—</p>
         </div>
       </div>
-      
-      <!-- Quick Reply Suggestions -->
-      <div class="quick-replies">
-        <button class="quick-reply-btn" onclick="sendQuickReply('I\'m feeling stressed')">Feeling stressed</button>
-        <button class="quick-reply-btn" onclick="sendQuickReply('I\'m feeling anxious')">Feeling anxious</button>
-        <button class="quick-reply-btn" onclick="sendQuickReply('I need someone to talk to')">Need to talk</button>
-        <button class="quick-reply-btn" onclick="sendQuickReply('I\'m feeling better today')">Feeling better</button>
+
+      <div class="card">
+        <p class="card-title">Quick Actions</p>
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="showSection('todo')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Task
+          </button>
+          <button class="btn btn-outline" onclick="showSection('wellness')">
+            <svg viewBox="0 0 24 24" style="stroke:var(--primary);fill:none;stroke-width:2;width:15px;height:15px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Track Wellness
+          </button>
+          <button class="btn btn-outline" onclick="showSection('telecounseling')">
+            <svg viewBox="0 0 24 24" style="stroke:var(--primary);fill:none;stroke-width:2;width:15px;height:15px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Message Doctor
+          </button>
+          <button class="btn btn-outline" onclick="showSection('appointments')">
+            <svg viewBox="0 0 24 24" style="stroke:var(--primary);fill:none;stroke-width:2;width:15px;height:15px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Book Appointment
+          </button>
+        </div>
       </div>
-      
-      <!-- Input Container -->
-      <div class="chat-input-container">
-        <input type="text" id="chatbotInput" placeholder="Share how you're feeling..." class="chat-input">
-        <button class="btn btn-primary" id="sendChatbotBtn">
-          <span>Send</span>
+    </section>
+
+    <!-- TO-DO LIST -->
+    <section id="todoSection" class="content-section">
+      <div class="page-header-row">
+        <div class="page-header" style="margin-bottom:0;">
+          <h1>Daily To-Do List</h1>
+          <p>Manage your daily tasks and goals</p>
+        </div>
+        <button class="btn btn-primary" id="addTodoBtn">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Task
         </button>
       </div>
-    </div>
-  </div>
-  
-  <!-- Info Card -->
-  <div class="card" style="margin-top: 24px; border-left: 4px solid #667eea; background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);">
-    <div style="display: flex; gap: 20px; align-items: start;">
-      <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-        <span style="font-size: 24px; font-weight: 700; color: white;">i</span>
-      </div>
-      <div style="flex: 1;">
-        <h3 style="margin: 0 0 12px 0; font-size: 18px; color: var(--text-primary);">About This AI Assistant</h3>
-        <p style="color: var(--text-secondary); line-height: 1.8; margin: 0; font-size: 15px;">
-          This AI assistant uses advanced Google Gemini technology to provide empathetic, real-time emotional support. 
-          While it's designed to be helpful and supportive, it's not a substitute for professional mental health care. 
-          If you're experiencing a crisis or need immediate help, please contact your doctor or emergency services.
-        </p>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Privacy Notice -->
-  <div class="card" style="margin-top: 16px; background: var(--bg-secondary); border: 1px solid var(--border-color);">
-    <div style="display: flex; gap: 12px; align-items: start;">
-      <div style="width: 32px; height: 32px; background: var(--primary-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-        <span style="font-size: 16px; color: white;">🔒</span>
-      </div>
-      <div style="flex: 1;">
-        <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: var(--text-primary);">Your Privacy Matters</h4>
-        <p style="color: var(--text-secondary); line-height: 1.6; margin: 0; font-size: 13px;">
-          Your conversations are processed securely. We prioritize your privacy and confidentiality.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
+      <div style="height:24px;"></div>
 
-      <!-- Appointments Section -->
-      <section id="appointmentsSection" class="content-section">
-        <div class="header">
+      <div class="card" id="todoFormCard" style="display:none; margin-bottom:16px;">
+        <p class="card-title">Create Today's Tasks</p>
+        <div id="taskInputs"></div>
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="addTaskInput()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Another
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="saveTodoList()">Save List</button>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('todoFormCard').style.display='none'">Cancel</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="todoList">
+          <div class="empty-state">
+            <div class="empty-state-icon"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+            <p>No tasks for today. Click "Add Task" to get started.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DAILY WELLNESS -->
+    <section id="wellnessSection" class="content-section">
+      <div class="page-header">
+        <h1>Daily Wellness Tracker</h1>
+        <p>Track your mood, sleep, and stress levels each day</p>
+      </div>
+
+      <div class="card">
+        <form id="wellnessForm">
+          <div class="form-group">
+            <label>How are you feeling today?</label>
+            <div class="mood-selector">
+              <button type="button" class="mood-btn mood-happy" data-mood="Happy">
+                <div class="mood-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                </div>
+                <span class="mood-label">Happy</span>
+              </button>
+              <button type="button" class="mood-btn mood-neutral" data-mood="Neutral">
+                <div class="mood-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                </div>
+                <span class="mood-label">Neutral</span>
+              </button>
+              <button type="button" class="mood-btn mood-sad" data-mood="Sad">
+                <div class="mood-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                </div>
+                <span class="mood-label">Sad</span>
+              </button>
+              <button type="button" class="mood-btn mood-stressed" data-mood="Stressed">
+                <div class="mood-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><path d="M9 9c0-1 1-1.5 1.5-2s1.5-1 1.5-2"/><path d="M15 9c0-1-1-1.5-1.5-2S12 5 12 4"/></svg>
+                </div>
+                <span class="mood-label">Stressed</span>
+              </button>
+              <button type="button" class="mood-btn mood-tired" data-mood="Tired">
+                <div class="mood-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><path d="M7 9.5C7 9 8 8 9 9.5"/><path d="M17 9.5c0-.5-1-1.5-2 0"/></svg>
+                </div>
+                <span class="mood-label">Tired</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top:20px;">
+            <div class="form-group">
+              <label>Sleep Hours Last Night</label>
+              <input type="number" id="sleepHours" min="0" max="24" step="0.5" placeholder="e.g. 7.5" required>
+            </div>
+            <div class="form-group">
+              <label>Stress Level Today</label>
+              <input type="range" id="stressLevel" min="1" max="10" value="5" required>
+              <div class="range-value-display">
+                <span class="range-value-num" id="stressLevelValue">5</span>
+                <span class="range-value-denom">/ 10</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:4px;">
+            <label>Daily Notes <span style="font-weight:400; color:var(--text-muted);">(optional)</span></label>
+            <textarea id="wellnessNotes" placeholder="How was your day? What made you happy or stressed?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+              <input type="checkbox" id="todoCompleted" style="width:16px;height:16px;accent-color:var(--primary);">
+              I completed all my tasks today
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save Today's Entry
+          </button>
+        </form>
+      </div>
+
+      <div class="card mt-20">
+        <p class="card-title">Recent Wellness Entries</p>
+        <div id="recentWellness">
+          <div class="empty-state">
+            <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+            <p>No entries yet. Start tracking today!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESOURCES -->
+    <section id="resourcesSection" class="content-section">
+      <div class="page-header">
+        <h1>Awareness Resources</h1>
+        <p>Audio, video, and articles curated for your mental wellness journey</p>
+      </div>
+
+      <div class="filter-bar resource-filters">
+        <button class="filter-btn active" data-filter="all">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          All Resources
+        </button>
+        <button class="filter-btn" data-filter="audio">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          Audio
+        </button>
+        <button class="filter-btn" data-filter="video">
+          <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          Video
+        </button>
+        <button class="filter-btn" data-filter="article">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Articles
+        </button>
+      </div>
+
+      <div id="resourcesList" class="cards-grid">
+        <p class="empty-state-text">Loading resources...</p>
+      </div>
+    </section>
+
+    <!-- TELECOUNSELING -->
+    <section id="telecounselingSection" class="content-section">
+      <div class="page-header">
+        <h1>Telecounseling</h1>
+        <p>Connect securely with your doctor via chat, audio, or video</p>
+      </div>
+
+      <div class="telecounseling-layout">
+        <div class="chat-wrapper">
+          <!-- Chat Header -->
+          <div class="chat-header">
+            <div class="chat-header-profile">
+              <img src="" alt="Doctor" id="doctorPhotoChat" class="chat-avatar">
+              <div class="chat-header-info">
+                <h3 id="doctorNameChat">Loading...</h3>
+                <p><span class="online-dot"></span><span id="doctorSpecChat">—</span></p>
+              </div>
+            </div>
+            <div class="call-btn-group">
+              <button class="call-btn call-btn-audio" id="audioCallBtn" title="Audio Call">
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </button>
+              <button class="call-btn call-btn-video" id="videoCallBtn" title="Video Call">
+                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Chat Messages -->
+          <div class="chat-messages" id="chatMessages">
+            <div class="empty-state">
+              <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <p>Start a conversation with your doctor</p>
+            </div>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="chat-input-bar">
+            <input type="text" id="messageInput" placeholder="Type your message..." class="chat-input">
+            <button class="voice-record-btn" id="voiceMessageBtn" title="Record voice message">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="send-btn" id="sendMessageBtn">
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Call Modal -->
+      <div id="videoCallModal" class="modal" style="display:none;">
+        <div class="video-call-modal">
+          <div class="video-container">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay muted playsinline></video>
+            <div class="audio-only-indicator" id="audioOnlyIndicator">
+              <div class="avatar">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <div class="name">Audio Call</div>
+              <div class="status">Connected</div>
+            </div>
+          </div>
+          <div class="call-controls">
+            <button class="call-ctrl-btn mute" id="toggleAudioBtn" title="Mute/Unmute">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            </button>
+            <button class="call-ctrl-btn end-call" id="endCallBtn" title="End Call">
+              <svg viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2 3.39a2 2 0 0 1 2-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79M23 1L1 23"/></svg>
+            </button>
+            <button class="call-ctrl-btn video-off" id="toggleVideoBtn" title="Video On/Off">
+              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHATBOT -->
+    <section id="chatbotSection" class="content-section">
+      <div class="page-header">
+        <h1>AI Support Assistant</h1>
+        <p>Powered by Google Gemini — available 24/7 for emotional support</p>
+      </div>
+
+      <div class="chatbot-wrapper">
+        <div class="chatbot-header">
+          <div class="chatbot-avatar">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21l4-4 4 4"/><path d="M12 17v4"/><circle cx="8.5" cy="10" r="1.5"/><circle cx="15.5" cy="10" r="1.5"/></svg>
+          </div>
+          <div class="chatbot-header-text">
+            <h3>MindCare AI Assistant</h3>
+            <p>Empathetic support, any time</p>
+          </div>
+          <div class="chatbot-status-pill">
+            <span class="chatbot-status-dot"></span>
+            Online
+          </div>
+        </div>
+
+        <div class="chatbot-messages" id="chatbotMessages">
+          <div class="chatbot-welcome-card">
+            <div class="chatbot-welcome-icon">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <h3>Welcome to MindCare AI</h3>
+            <p>I'm here to listen and provide emotional support. Share how you're feeling and I'll do my best to help. Remember — I'm AI-powered support, not a substitute for professional care.</p>
+          </div>
+          <div class="bot-msg-row">
+            <div class="bot-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><circle cx="15.5" cy="10" r="1.5"/></svg>
+            </div>
+            <div class="bot-bubble">Hello! I'm your MindCare AI Assistant. How are you feeling today? I'm here to listen and support you.</div>
+          </div>
+        </div>
+
+        <div class="quick-replies">
+          <button class="quick-reply-chip" onclick="sendQuickReply('I\'m feeling stressed')">Feeling stressed</button>
+          <button class="quick-reply-chip" onclick="sendQuickReply('I\'m feeling anxious')">Feeling anxious</button>
+          <button class="quick-reply-chip" onclick="sendQuickReply('I need someone to talk to')">Need to talk</button>
+          <button class="quick-reply-chip" onclick="sendQuickReply('I\'m feeling better today')">Feeling better</button>
+        </div>
+
+        <div class="chatbot-input-bar">
+          <input type="text" id="chatbotInput" placeholder="Share how you're feeling..." class="chat-input">
+          <button class="send-btn" id="sendChatbotBtn">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="info-banner mt-20">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <strong style="color:var(--text-primary); display:block; margin-bottom:4px;">About This Assistant</strong>
+          This AI assistant uses Google Gemini technology for empathetic, real-time support. It is not a substitute for professional mental health care. In a crisis, contact your doctor or emergency services immediately.
+        </div>
+      </div>
+    </section>
+
+    <!-- APPOINTMENTS -->
+    <section id="appointmentsSection" class="content-section">
+      <div class="page-header-row">
+        <div class="page-header" style="margin-bottom:0;">
           <h1>Appointments</h1>
-          <button class="btn btn-primary" id="bookAppointmentBtn">+ Book Appointment</button>
+          <p>Schedule and manage your offline consultations</p>
         </div>
+        <button class="btn btn-primary" id="bookAppointmentBtn">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Book Appointment
+        </button>
+      </div>
+      <div style="height:24px;"></div>
 
-        <!-- Book Appointment Form -->
-        <div class="card" id="appointmentForm" style="display:none;">
-          <h3>Book Offline Appointment</h3>
-          <form id="newAppointmentForm">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Preferred Date</label>
-                <input type="date" id="appointmentDate" required>
-              </div>
-              <div class="form-group">
-                <label>Preferred Time</label>
-                <input type="time" id="appointmentTime" required>
-              </div>
+      <div class="card" id="appointmentForm" style="display:none; margin-bottom:16px;">
+        <p class="card-title">Book Offline Appointment</p>
+        <form id="newAppointmentForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Preferred Date</label>
+              <input type="date" id="appointmentDate" required>
             </div>
             <div class="form-group">
-              <label>Reason for Visit</label>
-              <textarea id="appointmentReason" rows="3" placeholder="Brief description of your concerns" required></textarea>
+              <label>Preferred Time</label>
+              <input type="time" id="appointmentTime" required>
             </div>
-            <div class="btn-group">
-              <button type="button" class="btn btn-secondary" onclick="document.getElementById('appointmentForm').style.display='none'">Cancel</button>
-              <button type="submit" class="btn btn-primary">Submit Request</button>
-            </div>
-          </form>
-        </div>
+          </div>
+          <div class="form-group">
+            <label>Reason for Visit</label>
+            <textarea id="appointmentReason" placeholder="Brief description of your concerns..." required></textarea>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('appointmentForm').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary">Submit Request</button>
+          </div>
+        </form>
+      </div>
 
-        <!-- Appointments List -->
-        <div id="appointmentsList">
-          <p class="empty-state">No appointments scheduled</p>
+      <div id="appointmentsList">
+        <div class="empty-state">
+          <div class="empty-state-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <p>No appointments scheduled yet.</p>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Progress Section -->
-      <section id="progressSection" class="content-section">
-        <div class="header">
-          <h1>Progress Overview</h1>
-          <p class="subtitle">Track your mental health journey</p>
+    <!-- PROGRESS -->
+    <section id="progressSection" class="content-section">
+      <div class="page-header">
+        <h1>Progress Overview</h1>
+        <p>Track your mental health journey over time</p>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <p class="chart-title">Mood Distribution</p>
+            <p class="chart-subtitle">How your moods are distributed across tracked days</p>
+          </div>
         </div>
-        
+        <div class="chart-canvas-wrap">
+          <canvas id="moodChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <p class="chart-title">Stress Level Trend</p>
+            <p class="chart-subtitle">Your daily stress levels over recorded entries</p>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="stressChart"></canvas>
+        </div>
+      </div>
+
+      <div class="summary-grid">
         <div class="card">
-          <h3>Weekly Mood Trends</h3>
-          <canvas id="moodChart" style="max-height: 300px;"></canvas>
-        </div>
-
-        <div class="card" style="margin-top: 20px;">
-          <h3>Stress Level Trends</h3>
-          <canvas id="stressChart" style="max-height: 300px;"></canvas>
-        </div>
-
-        <div class="cards-grid" style="margin-top: 20px;">
-          <div class="card">
-            <h3>Weekly Summary</h3>
-            <div id="weeklySummary"></div>
+          <p class="card-title">Weekly Summary</p>
+          <div id="weeklySummary">
+            <div class="empty-state"><p>No data yet.</p></div>
           </div>
-          <div class="card">
-            <h3>Monthly Summary</h3>
-            <div id="monthlySummary"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Complaint Section -->
-      <section id="complaintSection" class="content-section">
-        <div class="header">
-          <h1>File a Complaint</h1>
-          <p class="subtitle">Report any issues or concerns</p>
         </div>
         <div class="card">
-          <form id="complaintForm">
-            <div class="form-group">
-              <label>Complaint Against</label>
-              <select id="complaintAgainst" required>
-                <option value="">Select</option>
-                <option value="doctor">My Doctor</option>
-                <option value="system">System/Technical Issue</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Subject</label>
-              <input type="text" id="complaintSubject" placeholder="Brief subject line" required>
-            </div>
-            <div class="form-group">
-              <label>Detailed Description</label>
-              <textarea id="complaintDescription" rows="6" placeholder="Please describe your complaint in detail..." required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Submit Complaint</button>
-          </form>
-
-          <div style="margin-top: 30px;">
-            <h3>Your Previous Complaints</h3>
-            <div id="complaintsList"></div>
+          <p class="card-title">Overall Summary</p>
+          <div id="monthlySummary">
+            <div class="empty-state"><p>No data yet.</p></div>
           </div>
         </div>
-      </section>
-    </main>
-  </div>
+      </div>
+    </section>
 
-  <div id="notification" class="notification"></div>
+    <!-- COMPLAINT -->
+    <section id="complaintSection" class="content-section">
+      <div class="page-header">
+        <h1>File a Complaint</h1>
+        <p>Report any concerns or issues with your care</p>
+      </div>
 
-  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script>
-    // Global variables for patient dashboard
-    let selectedMood = '';
-    let taskCount = 1;
-  </script>
-  <script src="js/main.js"></script>
-  <script src="js/telecommunication.js"></script>
-  <script src="js/resource.js"></script>
-  <script src="js/patient-dashboard.js"></script>
+      <div class="card">
+        <form id="complaintForm">
+          <div class="form-group">
+            <label>Complaint Against</label>
+            <select id="complaintAgainst" required>
+              <option value="">Select</option>
+              <option value="doctor">My Doctor</option>
+              <option value="system">System / Technical Issue</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="complaintSubject" placeholder="Brief subject line" required>
+          </div>
+          <div class="form-group">
+            <label>Detailed Description</label>
+            <textarea id="complaintDescription" rows="5" placeholder="Please describe your complaint in detail..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Complaint</button>
+        </form>
+      </div>
+
+      <div style="margin-top:24px;">
+        <p class="card-title" style="margin-bottom:14px;">Your Previous Complaints</p>
+        <div id="complaintsList">
+          <div class="empty-state">
+            <div class="empty-state-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <p>No complaints filed yet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div><!-- /dashboard -->
+
+<div id="notification" class="notification"></div>
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  // Global variables
+  var API_URL = (typeof API_URL !== 'undefined') ? API_URL : 'http://localhost:3000/api';
+  let selectedMood = '';
+  let taskCount = 1;
+
+  /* ===== THEME =====
+   * The SVG sun/moon icons live inside #themeToggle.
+   * main.js (legacy) may call themeToggleBtn.textContent = '🌙'
+   * which DESTROYS the SVGs. We prevent this with:
+   *  1. Saving the original SVG innerHTML
+   *  2. A MutationObserver that restores it immediately if trashed
+   *  3. Our own toggleTheme() that also does a defensive restore
+   */
+  (function() {
+    const tabId = sessionStorage.getItem('currentTabId') ||
+      ('tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
+    sessionStorage.setItem('currentTabId', tabId);
+    let theme = sessionStorage.getItem('theme_' + tabId) || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    window._tabId = tabId;
+
+    // Save correct button innerHTML (has SVGs + text spans)
+    const btn = document.getElementById('themeToggle');
+    if (btn) {
+      window._themeToggleHTML = btn.innerHTML;
+      // Watch for emoji replacement (textContent overwrite produces 1 text node ≤2 chars)
+      const obs = new MutationObserver(function() {
+        const isTrash = btn.children.length === 0 && btn.textContent.trim().length <= 4;
+        if (isTrash) btn.innerHTML = window._themeToggleHTML;
+      });
+      obs.observe(btn, { childList: true, subtree: false });
+    }
+  })();
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    sessionStorage.setItem('theme_' + window._tabId, next);
+    // Defensive: restore SVGs if main.js already destroyed them
+    const btn = document.getElementById('themeToggle');
+    if (btn && window._themeToggleHTML && btn.children.length === 0) {
+      btn.innerHTML = window._themeToggleHTML;
+    }
+  }
+
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+  /* ===== VOICE MESSAGE ENHANCER =====
+     telecommunication.js renders <audio> controls inside .message-bubble.
+     We watch for these and upgrade them to a clean white card layout,
+     preventing the teal/black background issue entirely.
+  */
+  function upgradeVoiceBubble(msgDiv) {
+    const bubble = msgDiv.querySelector('.message-bubble');
+    if (!bubble) return;
+    const audio = bubble.querySelector('audio');
+    if (!audio || bubble.dataset.voiceUpgraded) return;
+    bubble.dataset.voiceUpgraded = '1';
+
+    const isSent = msgDiv.classList.contains('sent');
+    const meta = bubble.querySelector('.message-meta');
+
+    // Build a clean voice card
+    const card = document.createElement('div');
+    card.className = 'voice-card';
+    card.style.cssText = [
+      'background: var(--bg-card)',
+      'border: 1.5px solid var(--border)',
+      'border-radius: 20px',
+      isSent ? 'border-bottom-right-radius: 4px' : 'border-bottom-left-radius: 4px',
+      'padding: 12px 16px',
+      'min-width: 260px',
+      'max-width: 320px',
+      'box-shadow: 0 2px 10px rgba(0,0,0,0.07)'
+    ].join(';');
+
+    // Label
+    const label = document.createElement('div');
+    label.style.cssText = 'display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:12px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:0.05em;';
+    label.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Voice Message`;
+    card.appendChild(label);
+
+    // Audio element — restyle
+    audio.style.cssText = 'display:block;width:100%;height:44px;border-radius:100px;background:var(--bg-input);outline:none;filter:none;';
+    card.appendChild(audio);
+
+    // Timestamp
+    if (meta) {
+      meta.style.cssText = 'display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:8px;font-size:11px;';
+      const ts = meta.querySelector('.timestamp');
+      if (ts) ts.style.color = 'var(--text-muted)';
+      const st = meta.querySelector('.status');
+      if (st) st.style.color = 'var(--text-muted)';
+      card.appendChild(meta);
+    }
+
+    // Replace bubble content
+    bubble.style.cssText = 'background:transparent;border:none;box-shadow:none;padding:0;';
+    bubble.innerHTML = '';
+    bubble.appendChild(card);
+  }
+
+  // Watch chatMessages container for voice messages added by telecommunication.js
+  const chatMsgContainer = document.getElementById('chatMessages');
+  if (chatMsgContainer) {
+    const voiceObserver = new MutationObserver((mutations) => {
+      mutations.forEach(m => {
+        m.addedNodes.forEach(node => {
+          if (node.nodeType !== 1) return;
+          if (node.classList.contains('message')) upgradeVoiceBubble(node);
+          node.querySelectorAll && node.querySelectorAll('.message').forEach(upgradeVoiceBubble);
+        });
+      });
+    });
+    voiceObserver.observe(chatMsgContainer, { childList: true, subtree: true });
+  }
+
+  /* ===== MOBILE SIDEBAR ===== */
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  }
+
+  /* ===== NAVIGATION ===== */
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (link.id === 'logoutBtn') { logout(); return; }
+      const section = link.dataset.section;
+      if (!section) return;
+      showSection(section);
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    });
+  });
+</script>
+<script src="js/main.js"></script>
+<script src="js/telecommunication.js"></script>
+<script src="js/resource.js"></script>
+<script src="js/patient-dashboard.js"></script>
 </body>
 </html>

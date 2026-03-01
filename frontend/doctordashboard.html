@@ -2,347 +2,1366 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Doctor Dashboard - Mental Health System</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <title>Doctor Dashboard — MindCare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════
+       CSS VARIABLES — light / dark themes
+    ═══════════════════════════════════════════ */
+    :root {
+      --primary:        #1a6b5a;
+      --primary-light:  #2d9c82;
+      --primary-dark:   #0f4438;
+      --primary-alpha:  rgba(26,107,90,0.10);
+
+      --danger:         #e03d3d;
+      --danger-light:   rgba(224,61,61,0.10);
+      --warning:        #d97706;
+      --warning-light:  rgba(217,119,6,0.10);
+      --success:        #16a34a;
+      --success-light:  rgba(22,163,74,0.10);
+      --info:           #2563eb;
+      --info-light:     rgba(37,99,235,0.10);
+
+      --bg-page:    #f0f4f3;
+      --bg-card:    #ffffff;
+      --bg-input:   #f7f9f8;
+      --bg-panel:   #eef3f1;
+      --bg-sidebar: #ffffff;
+      --bg-chat:    #e6eeec;
+
+      --text-primary:   #111c1a;
+      --text-secondary: #4a6260;
+      --text-muted:     #8aaba7;
+
+      --border:       #d5e3e0;
+      --border-focus: #1a6b5a;
+
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+
+      --sidebar-w:  260px;
+      --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+      --trans-fast: 0.15s ease;
+    }
+
+    [data-theme="dark"] {
+      --bg-page:    #0c1513;
+      --bg-card:    #131f1c;
+      --bg-input:   #1a2622;
+      --bg-panel:   #182320;
+      --bg-sidebar: #0f1a17;
+      --bg-chat:    #0a1210;
+
+      --text-primary:   #e2eeec;
+      --text-secondary: #7aada7;
+      --text-muted:     #4a706a;
+
+      --border:       #1f3330;
+      --border-focus: #2d9c82;
+
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.30);
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.40);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.50);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.60);
+    }
+
+    /* ═══════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background var(--transition), color var(--transition);
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ═══════════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════════ */
+    .dashboard { display: flex; min-height: 100vh; }
+
+    /* ═══════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 100;
+      transition: transform var(--transition), background var(--transition);
+      overflow: hidden;
+    }
+
+    /* Brand */
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-brand-mark {
+      width: 34px; height: 34px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-brand-mark svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .sidebar-brand-name { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--text-primary); }
+
+    /* Profile */
+    .sidebar-profile {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-profile-inner { display: flex; align-items: center; gap: 12px; }
+    .sidebar-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      background: var(--bg-panel);
+    }
+    .sidebar-profile-info h3 { font-size: 13.5px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+    .sidebar-profile-info p  { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .doctor-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--primary-alpha); color: var(--primary);
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 2px 8px; border-radius: 100px;
+      margin-top: 4px;
+    }
+    .doctor-badge svg { width: 10px; height: 10px; stroke: var(--primary); fill: none; stroke-width: 2; }
+
+    /* Nav */
+    .nav-section { padding: 10px 0; flex: 1; overflow-y: auto; }
+    .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 12px 20px 6px; }
+    .nav-menu { list-style: none; }
+    .nav-item { margin: 1px 8px; }
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13.5px; font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all var(--trans-fast);
+      cursor: pointer;
+    }
+    .nav-link:hover  { background: var(--bg-panel); color: var(--text-primary); }
+    .nav-link.active { background: var(--primary-alpha); color: var(--primary); font-weight: 600; }
+    .nav-link .nav-icon {
+      width: 18px; height: 18px;
+      stroke: currentColor; fill: none; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .nav-item-logout .nav-link { color: var(--danger); }
+    .nav-item-logout .nav-link:hover { background: var(--danger-light); }
+
+    /* Theme toggle */
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .theme-toggle-btn {
+      width: 100%; display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500;
+      color: var(--text-secondary);
+      transition: all var(--trans-fast);
+    }
+    .theme-toggle-btn:hover { border-color: var(--primary); background: rgba(26,107,90,0.06); color: var(--primary); }
+    .theme-toggle-btn svg  { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .icon-sun, .icon-moon  { display: none; }
+    [data-theme="light"] .icon-sun   { display: block; }
+    [data-theme="dark"]  .icon-moon  { display: block; }
+    [data-theme="light"] .theme-label-dark  { display: none; }
+    [data-theme="dark"]  .theme-label-light { display: none; }
+
+    /* Mobile topbar */
+    .mobile-topbar {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 56px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      z-index: 99;
+      padding: 0 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mobile-brand { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--primary); }
+    .hamburger-btn {
+      width: 38px; height: 38px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg-input); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hamburger-btn svg { width: 18px; height: 18px; stroke: var(--text-secondary); fill: none; stroke-width: 2; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+
+    /* ═══════════════════════════════════════════
+       MAIN CONTENT
+    ═══════════════════════════════════════════ */
+    .main-content {
+      margin-left: var(--sidebar-w);
+      flex: 1; min-height: 100vh;
+      padding: 32px;
+    }
+    .content-section { display: none; }
+    .content-section.active { display: block; }
+
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-family: 'DM Serif Display', serif; font-size: clamp(22px,2.5vw,30px); color: var(--text-primary); line-height: 1.2; margin-bottom: 6px; }
+    .page-header p  { font-size: 14px; color: var(--text-muted); }
+    .page-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+    /* ═══════════════════════════════════════════
+       CARDS
+    ═══════════════════════════════════════════ */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 18px; }
+
+    /* Stat cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .stat-icon svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .stat-icon.green  { background: var(--primary); }
+    .stat-icon.blue   { background: var(--info); }
+    .stat-icon.amber  { background: var(--warning); }
+    .stat-icon.red    { background: var(--danger); }
+    .stat-icon.teal   { background: #0891b2; }
+    .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-value { font-family: 'DM Serif Display', serif; font-size: 30px; color: var(--text-primary); line-height: 1; margin-bottom: 4px; }
+    .stat-sub   { font-size: 12px; color: var(--text-muted); }
+
+    /* Patient cards grid */
+    .patients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; }
+
+    .patient-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 22px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      text-align: center;
+      box-shadow: var(--shadow-xs);
+      transition: all var(--transition);
+    }
+    .patient-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .patient-card-photo {
+      width: 72px; height: 72px;
+      border-radius: 50%; object-fit: cover;
+      border: 3px solid var(--border);
+    }
+    .patient-card h4 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .patient-card p  { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; }
+
+    /* ═══════════════════════════════════════════
+       BUTTONS
+    ═══════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 600;
+      cursor: pointer; border: none; text-decoration: none;
+      transition: all var(--transition); white-space: nowrap;
+    }
+    .btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .btn-primary  { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,107,90,0.3); }
+    .btn-secondary{ background: var(--bg-panel); color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); color: var(--text-primary); }
+    .btn-danger   { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #c53030; }
+    .btn-success  { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-outline  { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+    .btn-outline:hover { background: var(--primary-alpha); }
+    .btn-sm { padding: 7px 14px; font-size: 12.5px; }
+
+    .quick-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ═══════════════════════════════════════════
+       FORM ELEMENTS
+    ═══════════════════════════════════════════ */
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 7px; letter-spacing: 0.02em; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    input[type="text"], input[type="number"], input[type="date"],
+    input[type="time"], input[type="email"], input[type="password"],
+    select, textarea {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg-input); color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      transition: all var(--transition); outline: none; appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus); background: var(--bg-card);
+      box-shadow: 0 0 0 3px var(--primary-alpha);
+    }
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
+    textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238aaba7' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+      padding-right: 36px; cursor: pointer;
+    }
+
+    /* File upload */
+    .file-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 28px 20px;
+      text-align: center;
+      background: var(--bg-input);
+      transition: all var(--transition);
+      cursor: pointer;
+      position: relative;
+    }
+    .file-upload-area:hover { border-color: var(--primary-light); background: rgba(26,107,90,0.04); }
+    .file-upload-area.has-file { border-color: var(--primary); background: var(--primary-alpha); }
+    .file-upload-icon {
+      width: 44px; height: 44px;
+      background: var(--bg-panel); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .file-upload-icon svg { width: 22px; height: 22px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+    .file-upload-area.has-file .file-upload-icon { background: var(--primary-alpha); }
+    .file-upload-area.has-file .file-upload-icon svg { stroke: var(--primary); }
+    .file-upload-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .file-upload-hint  { font-size: 12.5px; color: var(--text-muted); }
+    .file-upload-name  { font-size: 13px; font-weight: 600; color: var(--primary); margin-top: 8px; display: none; }
+    .file-upload-area.has-file .file-upload-name { display: block; }
+    .file-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+    /* ═══════════════════════════════════════════
+       FILTER BAR
+    ═══════════════════════════════════════════ */
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 8px 16px;
+      border: 1.5px solid var(--border); border-radius: 100px;
+      background: var(--bg-card);
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500; color: var(--text-secondary);
+      transition: all var(--transition);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .filter-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .filter-btn.active { border-color: var(--primary); background: var(--primary-alpha); color: var(--primary); font-weight: 600; }
+
+    /* ═══════════════════════════════════════════
+       STATUS PILLS
+    ═══════════════════════════════════════════ */
+    .status-pill {
+      display: inline-flex; align-items: center;
+      padding: 4px 12px; border-radius: 100px;
+      font-size: 11.5px; font-weight: 600;
+    }
+    .status-pill.pending  { background: var(--warning-light); color: var(--warning); }
+    .status-pill.approved { background: var(--success-light); color: var(--success); }
+    .status-pill.rejected { background: var(--danger-light);  color: var(--danger); }
+
+    /* ═══════════════════════════════════════════
+       SENTIMENT TABLE
+    ═══════════════════════════════════════════ */
+    .sentiment-table { width: 100%; border-collapse: collapse; }
+    .sentiment-table thead th {
+      padding: 12px 16px; text-align: left;
+      font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-muted); background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+    }
+    .sentiment-table tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px; color: var(--text-primary);
+    }
+    .sentiment-table tbody tr:hover { background: var(--bg-panel); }
+    .sentiment-table tbody tr:last-child td { border-bottom: none; }
+    .risk-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+    .risk-pill svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .risk-high   { background: var(--danger-light);  color: var(--danger); }
+    .risk-medium { background: var(--warning-light); color: var(--warning); }
+    .risk-low    { background: var(--success-light); color: var(--success); }
+
+    /* ═══════════════════════════════════════════
+       PATIENT HISTORY ENTRIES
+    ═══════════════════════════════════════════ */
+    .wellness-entry {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 16px; margin-bottom: 12px; background: var(--bg-card);
+    }
+    .wellness-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .wellness-date { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+    .mood-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 100px;
+      font-size: 12px; font-weight: 600;
+    }
+    .wellness-stats-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+    .wellness-stat { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--text-muted); }
+    .wellness-stat svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .wellness-notes { font-size: 13px; color: var(--text-secondary); font-style: italic; padding-left: 12px; border-left: 3px solid var(--primary-light); margin-top: 8px; line-height: 1.6; }
+
+    /* ═══════════════════════════════════════════
+       APPOINTMENTS
+    ═══════════════════════════════════════════ */
+    .appointment-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 20px;
+      margin-bottom: 12px;
+      display: flex; align-items: flex-start; gap: 16px;
+    }
+    .appt-date-block {
+      text-align: center; background: var(--primary-alpha);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      flex-shrink: 0; min-width: 64px;
+    }
+    .appt-date-month { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); }
+    .appt-date-day   { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--primary); line-height: 1; }
+    .appt-info { flex: 1; }
+    .appt-info h4 { font-size: 14.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .appt-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+    .appt-meta-item { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--text-muted); }
+    .appt-meta-item svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .appt-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+    /* ═══════════════════════════════════════════
+       RESOURCES UPLOAD
+    ═══════════════════════════════════════════ */
+    .resource-form-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 28px; box-shadow: var(--shadow-sm); margin-bottom: 24px; }
+    .resource-type-tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+    .resource-type-tab {
+      flex: 1; padding: 12px 8px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg-input); cursor: pointer;
+      text-align: center; transition: all var(--transition);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .resource-type-tab:hover { border-color: var(--primary-light); }
+    .resource-type-tab.active { border-color: var(--primary); background: var(--primary-alpha); }
+    .resource-type-tab .tab-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px;
+    }
+    .resource-type-tab .tab-icon svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .resource-type-tab .tab-icon.audio-icon   { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+    .resource-type-tab .tab-icon.video-icon   { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+    .resource-type-tab .tab-icon.article-icon { background: linear-gradient(135deg, #d97706, #f59e0b); }
+    .resource-type-tab .tab-label { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+    .resource-type-tab.active .tab-label { color: var(--primary); }
+
+    /* My uploaded resources */
+    .my-resource-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 18px;
+      margin-bottom: 12px;
+      display: flex; align-items: flex-start; gap: 14px;
+      transition: all var(--transition);
+    }
+    .my-resource-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-sm); }
+    .my-resource-card.pending  { border-left: 3px solid var(--warning); }
+    .my-resource-card.approved { border-left: 3px solid var(--success); }
+    .resource-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .resource-icon svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    /* ═══════════════════════════════════════════
+       TELECOUNSELING
+    ═══════════════════════════════════════════ */
+    .telecounseling-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 0;
+      height: 640px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Patient list sidebar */
+    .chat-patient-list {
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
+      padding: 0;
+    }
+    .chat-patient-list-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .chat-patient-list-header h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .chat-patient-list-header p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .chat-patient-list-body { flex: 1; overflow-y: auto; }
+
+    .chat-patient-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background var(--trans-fast);
+    }
+    .chat-patient-item:hover   { background: var(--bg-panel); }
+    .chat-patient-item.active  { background: var(--primary-alpha); }
+    .chat-patient-item:last-child { border-bottom: none; }
+    .chat-patient-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%; object-fit: cover;
+      border: 1.5px solid var(--border); flex-shrink: 0;
+      background: var(--bg-panel);
+    }
+    .chat-patient-info h4 { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+    .chat-patient-info p  { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .online-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+    /* Chat area */
+    .chat-area {
+      display: flex; flex-direction: column;
+      background: var(--bg-card);
+      overflow: hidden;
+    }
+
+    /* Chat header */
+    .chat-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+      flex-shrink: 0;
+    }
+    .chat-header-profile { display: flex; align-items: center; gap: 12px; }
+    .chat-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      object-fit: cover; border: 2px solid var(--border);
+      background: var(--bg-panel);
+    }
+    .chat-header-info h3 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .chat-header-info p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Call buttons — distinct colors */
+    .call-btn-group { display: flex; gap: 8px; }
+    .call-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: var(--bg-input);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+    }
+    .call-btn svg { width: 17px; height: 17px; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .call-btn-audio { border-color: rgba(22,163,74,0.3); }
+    .call-btn-audio svg { stroke: var(--success); }
+    .call-btn-audio:hover { background: var(--success-light); border-color: var(--success); }
+    .call-btn-video { border-color: rgba(37,99,235,0.3); }
+    .call-btn-video svg { stroke: var(--info); }
+    .call-btn-video:hover { background: var(--info-light); border-color: var(--info); }
+
+    /* No-patient placeholder */
+    .chat-empty-state {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 14px; padding: 40px;
+      background: var(--bg-chat);
+    }
+    .chat-empty-icon {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .chat-empty-icon svg { width: 30px; height: 30px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+    .chat-empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .chat-empty-state p  { font-size: 13.5px; color: var(--text-muted); text-align: center; max-width: 240px; line-height: 1.6; }
+
+    /* Messages area */
+    .chat-messages {
+      flex: 1; padding: 18px 16px;
+      overflow-y: auto;
+      display: flex; flex-direction: column;
+      gap: 10px;
+      background: var(--bg-chat);
+    }
+
+    /* Message bubbles — matching patient dashboard */
+    .message { display: flex; max-width: 75%; margin-bottom: 4px; }
+    .message.sent    { align-self: flex-end;   margin-left: auto; flex-direction: row-reverse; }
+    .message.received{ align-self: flex-start; margin-right: auto; flex-direction: row; }
+    .message-bubble  { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.55; word-break: break-word; }
+    .message.received .message-bubble { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+    .message.sent .message-bubble     { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; box-shadow: 0 1px 4px rgba(26,107,90,0.25); }
+    .message.sent .message-bubble .timestamp,
+    .message.sent .message-bubble .message-meta { color: rgba(255,255,255,0.7) !important; }
+    .message.received .message-bubble .timestamp,
+    .message.received .message-bubble .message-meta { color: var(--text-muted) !important; }
+
+    /* Voice bubble */
+    .voice-bubble {
+      background: var(--bg-card) !important; border: 1.5px solid var(--border) !important;
+      border-radius: 18px !important; padding: 14px 16px 12px !important;
+      min-width: 300px !important; max-width: 360px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
+      display: flex !important; flex-direction: column !important; gap: 10px !important;
+      color: var(--text-primary) !important;
+    }
+    .message.sent .voice-bubble  { border-bottom-right-radius: 4px !important; }
+    .message.received .voice-bubble { border-bottom-left-radius: 4px !important; }
+    .vp-row { display: flex; align-items: center; gap: 12px; }
+    .vp-play-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--primary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.18s, transform 0.15s; }
+    .vp-play-btn:hover { background: var(--primary-dark); transform: scale(1.07); }
+    .vp-play-btn svg  { width: 18px; height: 18px; stroke: white; }
+    .vp-track { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .vp-progress-wrap { height: 4px; background: var(--border); border-radius: 4px; cursor: pointer; overflow: hidden; }
+    .vp-progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.1s linear; pointer-events: none; }
+    .vp-wave { display: flex; align-items: center; gap: 2px; height: 28px; }
+    .vp-bar  { display: inline-block; width: 3px; background: var(--border); border-radius: 2px; transition: background 0.2s; }
+    .vp-wave.playing .vp-bar { background: var(--primary-light); animation: vpWave 1.1s ease-in-out infinite; }
+    .vp-wave.playing .vp-bar:nth-child(odd)  { animation-delay: 0.0s; }
+    .vp-wave.playing .vp-bar:nth-child(even) { animation-delay: 0.18s; }
+    .vp-wave.playing .vp-bar:nth-child(3n)   { animation-delay: 0.36s; }
+    @keyframes vpWave { 0%,100%{transform:scaleY(0.6);opacity:0.6}50%{transform:scaleY(1.4);opacity:1} }
+    .vp-duration { font-size: 12.5px; font-weight: 600; color: var(--text-muted); white-space: nowrap; min-width: 32px; text-align: right; flex-shrink: 0; }
+    .vp-meta { display: flex; align-items: center; justify-content: space-between; padding-top: 2px; }
+    .vp-label { display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
+    .vp-label svg { flex-shrink: 0; stroke: var(--text-muted); }
+    .vp-time-row { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+    .voice-bubble audio { display: none !important; }
+
+    /* Chat input bar */
+    .chat-input-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card); flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1; padding: 10px 16px;
+      border: 1.5px solid var(--border); border-radius: 100px;
+      background: var(--bg-input); color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif; font-size: 14px;
+      outline: none; transition: all var(--transition);
+    }
+    .chat-input:focus { border-color: var(--border-focus); background: var(--bg-card); box-shadow: 0 0 0 3px var(--primary-alpha); }
+    .chat-input::placeholder { color: var(--text-muted); }
+    .voice-record-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: var(--bg-input);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all var(--transition);
+    }
+    .voice-record-btn svg { width: 17px; height: 17px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; }
+    .voice-record-btn:hover  { border-color: var(--danger); background: var(--danger-light); }
+    .voice-record-btn:hover svg { stroke: var(--danger); }
+    .voice-record-btn.recording { border-color: var(--danger); background: var(--danger-light); animation: recPulse 1s infinite; }
+    .voice-record-btn.recording svg { stroke: var(--danger); }
+    @keyframes recPulse { 0%,100%{box-shadow:0 0 0 0 rgba(224,61,61,0.3)}50%{box-shadow:0 0 0 6px rgba(224,61,61,0)} }
+    .send-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all var(--transition); }
+    .send-btn svg { width: 16px; height: 16px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .send-btn:hover { background: var(--primary-dark); transform: scale(1.05); }
+
+    /* ═══════════════════════════════════════════
+       VIDEO CALL MODAL
+    ═══════════════════════════════════════════ */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .video-call-modal { background: #0a0a0a; border-radius: var(--radius-lg); width: min(92vw,860px); overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.7); }
+    .video-container { position: relative; aspect-ratio: 16/9; background: #1a1a1a; }
+    #remoteVideoDoctor { width: 100%; height: 100%; object-fit: cover; }
+    #localVideoDoctor  { position: absolute; bottom: 16px; right: 16px; width: 160px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .audio-only-indicator { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: white; }
+    .audio-only-indicator .name   { font-size: 20px; font-weight: 600; }
+    .audio-only-indicator .status { font-size: 14px; color: rgba(255,255,255,0.6); }
+    .call-controls { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 20px; background: #111; }
+    .call-ctrl-btn { width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all var(--transition); }
+    .call-ctrl-btn svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .call-ctrl-btn.mute      { background: #333; }
+    .call-ctrl-btn.mute:hover{ background: #444; }
+    .call-ctrl-btn.end-call  { background: #e03d3d; width: 60px; height: 60px; }
+    .call-ctrl-btn.end-call:hover { background: #c53030; transform: scale(1.05); }
+    .call-ctrl-btn.video-off { background: #333; }
+    .call-ctrl-btn.video-off:hover { background: #444; }
+
+    /* ═══════════════════════════════════════════
+       COMPLAINTS
+    ═══════════════════════════════════════════ */
+    .complaint-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 12px; }
+    .complaint-card.pending  { border-left: 3px solid var(--warning); }
+    .complaint-card.resolved { border-left: 3px solid var(--success); }
+
+    /* ═══════════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════════ */
+    .empty-state { text-align: center; padding: 40px 20px; }
+    .empty-state-icon { width: 56px; height: 56px; background: var(--bg-panel); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .empty-state-icon svg { width: 28px; height: 28px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+    .empty-state p { font-size: 14px; color: var(--text-muted); }
+
+    /* ═══════════════════════════════════════════
+       INFO BANNER
+    ═══════════════════════════════════════════ */
+    .info-banner {
+      background: var(--info-light); border: 1px solid rgba(37,99,235,0.2);
+      border-left: 3px solid var(--info); border-radius: var(--radius-sm);
+      padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start;
+      font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;
+    }
+    .info-banner svg { width: 18px; height: 18px; stroke: var(--info); fill: none; stroke-width: 2; flex-shrink: 0; margin-top: 1px; }
+
+    /* ═══════════════════════════════════════════
+       NOTIFICATION
+    ═══════════════════════════════════════════ */
+    .notification { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; opacity: 0; transform: translateY(10px); transition: all 0.3s ease; z-index: 9999; max-width: 340px; pointer-events: none; box-shadow: var(--shadow-md); }
+    .notification.show { opacity: 1; transform: translateY(0); }
+    .notification.success { background: #d4edda; color: #155724; border-left: 3px solid #28a745; }
+    .notification.error   { background: #f8d7da; color: #721c24; border-left: 3px solid #dc3545; }
+    .notification.info    { background: #d1ecf1; color: #0c5460; border-left: 3px solid #17a2b8; }
+    [data-theme="dark"] .notification.success { background: #172920; color: #7bcc96; }
+    [data-theme="dark"] .notification.error   { background: #2d1519; color: #f48c9a; }
+    [data-theme="dark"] .notification.info    { background: #0d1e28; color: #7dd3eb; }
+
+    /* ═══════════════════════════════════════════
+       PATIENT MODAL (details popup)
+    ═══════════════════════════════════════════ */
+    .patient-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .patient-modal {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); width: min(92vw,640px);
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+    .patient-modal-header {
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .patient-modal-header h2 { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text-primary); }
+    .modal-close-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-input); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all var(--trans-fast); }
+    .modal-close-btn:hover { background: var(--danger-light); border-color: var(--danger); }
+    .modal-close-btn svg { width: 16px; height: 16px; stroke: var(--text-secondary); fill: none; stroke-width: 2; }
+    .modal-close-btn:hover svg { stroke: var(--danger); }
+    .patient-modal-body { padding: 24px 28px; }
+    .patient-modal-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); display: block; margin: 0 auto 16px; }
+    .patient-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+    .patient-detail-item { background: var(--bg-panel); border-radius: var(--radius-sm); padding: 12px 14px; }
+    .patient-detail-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
+    .patient-detail-value { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+
+    /* ═══════════════════════════════════════════
+       CHART CARD
+    ═══════════════════════════════════════════ */
+    .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+    .chart-title  { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .chart-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+    .chart-canvas-wrap { position: relative; height: 260px; }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════ */
+    @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 900px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { transform: translateX(-260px); width: 260px; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.show { display: block; }
+      .mobile-topbar { display: flex; }
+      .main-content { margin-left: 0; padding: 80px 20px 20px; }
+      .telecounseling-layout { grid-template-columns: 1fr; height: auto; }
+      .chat-patient-list { border-right: none; border-bottom: 1px solid var(--border); height: 220px; }
+      .chat-area { height: 460px; }
+    }
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .form-row   { grid-template-columns: 1fr; }
+      .patient-detail-grid { grid-template-columns: 1fr; }
+      .resource-type-tabs { flex-direction: column; }
+    }
+    @media (max-width: 400px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .main-content { padding: 72px 14px 14px; }
+    }
+  </style>
 </head>
 <body>
-  <div class="theme-toggle">
-    <button id="themeToggle">🌙</button>
-  </div>
 
-  <div class="dashboard">
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <img src="" alt="Profile" class="profile-photo-small" id="profilePhoto">
-        <h3 id="userName">Loading...</h3>
-        <p id="userSpec" style="font-size: 12px; color: var(--text-secondary);"></p>
-      </div>
-      
-      <ul class="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link active" data-section="overview">📊 Overview</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="patients">👥 My Patients</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="patient-history">📋 Patient History</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="sentiment">📈 Sentiment Trends</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="telecounseling">📬 Telecounseling</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="appointments">📅 Appointments</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="resources">📚 Upload Resources</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-section="complaint">⚠️ Complaint</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" id="logoutBtn">🚪 Logout</a>
-        </li>
-      </ul>
-    </aside>
-
-    <main class="main-content">
-      <!-- Overview Section -->
-      <section id="overviewSection" class="content-section active">
-        <div class="header">
-          <h1>Doctor Dashboard 👨‍⚕️</h1>
-          <p class="subtitle">Welcome back, Doctor</p>
-        </div>
-        <div class="cards-grid">
-          <div class="card stat-card">
-            <div class="stat-icon">👥</div>
-            <h3>Total Patients</h3>
-            <p class="stat-number" id="totalPatients">0</p>
-            <small>assigned to you</small>
-          </div>
-          <div class="card stat-card">
-            <div class="stat-icon">📅</div>
-            <h3>Pending Appointments</h3>
-            <p class="stat-number" id="pendingAppointments">0</p>
-            <small>awaiting approval</small>
-          </div>
-          <div class="card stat-card">
-            <div class="stat-icon">📬</div>
-            <h3>Unread Messages</h3>
-            <p class="stat-number" id="unreadMessages">0</p>
-            <small>from patients</small>
-          </div>
-          <div class="card stat-card">
-            <div class="stat-icon">⚠️</div>
-            <h3>High Risk Patients</h3>
-            <p class="stat-number" id="highRiskPatients">0</p>
-            <small>need attention</small>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Quick Actions</h3>
-          <div class="quick-actions">
-            <button class="btn btn-primary" onclick="showSection('patients')">View Patients</button>
-            <button class="btn btn-primary" onclick="showSection('appointments')">Manage Appointments</button>
-            <button class="btn btn-primary" onclick="showSection('telecounseling')">Open Chat</button>
-            <button class="btn btn-primary" onclick="showSection('resources')">Upload Resource</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- My Patients Section -->
-      <section id="patientsSection" class="content-section">
-        <div class="header">
-          <h1>My Patients</h1>
-          <p class="subtitle">Patients assigned to you</p>
-        </div>
-        <div id="patientsList" class="cards-grid">
-          <p class="empty-state">Loading patients...</p>
-        </div>
-      </section>
-
-      <!-- Patient History Section -->
-      <section id="patient-historySection" class="content-section">
-        <div class="header">
-          <h1>Patient History</h1>
-          <p class="subtitle">View detailed patient wellness history</p>
-        </div>
-        <div class="card">
-          <div class="form-group">
-            <label>Select Patient</label>
-            <select id="patientSelect" onchange="loadPatientHistory(this.value)">
-              <option value="">Choose a patient...</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="patientHistoryContent" style="display:none;">
-          <div class="card">
-            <h3>Patient Information</h3>
-            <div id="patientInfo"></div>
-          </div>
-
-          <div class="card" style="margin-top: 20px;">
-            <h3>Wellness History</h3>
-            <canvas id="patientHistoryChart" style="max-height: 300px;"></canvas>
-          </div>
-
-          <div class="card" style="margin-top: 20px;">
-            <h3>Recent Wellness Entries</h3>
-            <div id="patientWellnessEntries"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sentiment Trends Section -->
-      <section id="sentimentSection" class="content-section">
-        <div class="header">
-          <h1>Patient Sentiment Trends</h1>
-          <p class="subtitle">Patients ordered by average stress level</p>
-        </div>
-        <div class="card">
-          <div id="sentimentTrends">
-            <p class="empty-state">Loading sentiment data...</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Telecounseling Section -->
-      <section id="telecounselingSection" class="content-section">
-        <div class="header">
-          <h1>Telecounseling</h1>
-          <p class="subtitle">Communicate with your patients</p>
-        </div>
-
-        <div class="telecounseling-layout">
-          <!-- Patient List -->
-          <div class="chat-patient-list card">
-            <h3>Patients</h3>
-            <div id="chatPatientsList">
-              <p class="empty-state">No patients available</p>
-            </div>
-          </div>
-
-          <!-- Chat Area -->
-          <div class="chat-container card">
-            <div class="chat-header" id="chatHeaderDoctor" style="display:none;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="" alt="Patient" id="patientPhotoChat" class="profile-photo-small">
-                <div>
-                  <h3 id="patientNameChat" style="margin: 0;">Select a patient</h3>
-                  <small id="patientStatusChat" style="color: var(--text-secondary);">-</small>
-                </div>
-              </div>
-              <div class="call-buttons">
-                <button class="btn btn-success" id="audioCallBtnDoctor">📞 Audio</button>
-                <button class="btn btn-primary" id="videoCallBtnDoctor">📱 Video</button>
-              </div>
-            </div>
-            <div class="chat-messages" id="chatMessagesDoctor">
-              <p class="empty-state">Select a patient to start conversation</p>
-            </div>
-            <div class="chat-input-container" id="chatInputDoctor" style="display:none;">
-              <input type="text" id="messageInputDoctor" placeholder="Type your message..." class="chat-input">
-              <button class="btn btn-icon" id="voiceMessageBtnDoctor" title="Record voice message">🎤</button>
-              <button class="btn btn-primary" id="sendMessageBtnDoctor">Send</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Video Call Modal -->
-         <div id="videoCallModalDoctor" class="modal" style="display: none;">
-  <div class="modal-content video-call-modal">
-    <div class="video-container">
-      <!-- Remote Video - Full Screen - MUST have autoplay and playsinline -->
-      <video id="remoteVideoDoctor" autoplay playsinline></video>
-      
-      <!-- Local Video - Corner - MUST have autoplay, muted, and playsinline -->
-      <video id="localVideoDoctor" autoplay muted playsinline></video>
-      
-      <!-- Audio Only Indicator - Shows when no video -->
-      <div class="audio-only-indicator">
-        <div class="avatar">🎤</div>
-        <div class="name">Audio Call</div>
-        <div class="status">Connected</div>
-      </div>
-    </div>
-    
-    <div class="call-controls">
-      <button class="btn btn-secondary" id="toggleAudioBtnDoctor" title="Mute/Unmute">🎤 Mute</button>
-      <button class="btn btn-danger" id="endCallBtnDoctor" title="End Call">📞 End</button>
-      <button class="btn btn-secondary" id="toggleVideoBtnDoctor" title="Video On/Off">📹 Video Off</button>
-    </div>
-  </div>
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+  <span class="mobile-brand">MindCare</span>
+  <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
 </div>
 
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-      </section>
+<div class="dashboard">
 
-      <!-- Appointments Section -->
-      <section id="appointmentsSection" class="content-section">
-        <div class="header">
-          <h1>Appointment Requests</h1>
-          <p class="subtitle">Manage patient appointment requests</p>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 8.5c0 2 1 3.5 2.5 4.5L8 18h8l.5-5C18 12 19 10.5 19 8.5 19 5 16 2 12 2z"/><path d="M9 13.5c.5 1 1.5 1.5 3 1.5s2.5-.5 3-1.5"/></svg>
+      </div>
+      <span class="sidebar-brand-name">MindCare</span>
+    </div>
+
+    <div class="sidebar-profile">
+      <div class="sidebar-profile-inner">
+        <img src="" alt="Profile" class="sidebar-avatar" id="profilePhoto">
+        <div class="sidebar-profile-info">
+          <h3 id="userName">Loading...</h3>
+          <p id="userSpec">Specialist</p>
+          <div class="doctor-badge">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Doctor
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav-section">
+      <p class="nav-label">Dashboard</p>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-section="overview">
+            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Overview
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="patients">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            My Patients
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="patient-history">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Patient History
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="sentiment">
+            <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Sentiment Trends
+          </a>
+        </li>
+      </ul>
+
+      <p class="nav-label" style="margin-top:8px;">Communication</p>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="telecounseling">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Telecounseling
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="appointments">
+            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Appointments
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="resources">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Resources
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-section="complaint">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Complaints
+          </a>
+        </li>
+      </ul>
+
+      <div style="height:10px;"></div>
+      <ul class="nav-menu">
+        <li class="nav-item nav-item-logout">
+          <a href="#" class="nav-link" id="logoutBtn">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign Out
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="theme-toggle-btn" id="themeToggle">
+        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span class="theme-label-light">Switch to Dark</span>
+        <span class="theme-label-dark">Switch to Light</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- OVERVIEW -->
+    <section id="overviewSection" class="content-section active">
+      <div class="page-header">
+        <h1>Good day, Doctor</h1>
+        <p>Here's your practice overview for today</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <p class="stat-label">Total Patients</p>
+          <p class="stat-value" id="totalPatients">0</p>
+          <p class="stat-sub">assigned to you</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <p class="stat-label">Pending Appointments</p>
+          <p class="stat-value" id="pendingAppointments">0</p>
+          <p class="stat-sub">awaiting approval</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <p class="stat-label">Unread Messages</p>
+          <p class="stat-value" id="unreadMessages">0</p>
+          <p class="stat-sub">from patients</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <p class="stat-label">High Risk Patients</p>
+          <p class="stat-value" id="highRiskPatients">0</p>
+          <p class="stat-sub">need attention</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">Quick Actions</p>
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="showSection('patients')">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            View Patients
+          </button>
+          <button class="btn btn-outline" onclick="showSection('appointments')">
+            <svg viewBox="0 0 24 24" style="stroke:var(--primary);fill:none;stroke-width:2;width:15px;height:15px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Appointments
+          </button>
+          <button class="btn btn-outline" onclick="showSection('telecounseling')">
+            <svg viewBox="0 0 24 24" style="stroke:var(--primary);fill:none;stroke-width:2;width:15px;height:15px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Open Chat
+          </button>
+          <button class="btn btn-outline" onclick="showSection('resources')">
+            <svg viewBox="0 0 24 24" style="stroke:var(--primary);fill:none;stroke-width:2;width:15px;height:15px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Resource
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MY PATIENTS -->
+    <section id="patientsSection" class="content-section">
+      <div class="page-header">
+        <h1>My Patients</h1>
+        <p>Patients currently assigned to your care</p>
+      </div>
+      <div id="patientsList" class="patients-grid">
+        <div class="empty-state">
+          <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <p>Loading patients...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PATIENT HISTORY -->
+    <section id="patient-historySection" class="content-section">
+      <div class="page-header">
+        <h1>Patient History</h1>
+        <p>View detailed wellness history for each patient</p>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Select Patient</label>
+          <select id="patientSelect">
+            <option value="">Choose a patient...</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="patientHistoryContent" style="display:none;">
+        <div class="card" style="margin-bottom:16px;">
+          <p class="card-title">Patient Information</p>
+          <div id="patientInfo"></div>
         </div>
 
-        <div class="appointment-filters">
-          <button class="filter-btn active" data-filter="pending">⏳ Pending</button>
-          <button class="filter-btn" data-filter="approved">✅ Approved</button>
-          <button class="filter-btn" data-filter="rejected">❌ Rejected</button>
-          <button class="filter-btn" data-filter="all">📋 All</button>
-        </div>
-
-        <div id="appointmentsList">
-          <p class="empty-state">Loading appointments...</p>
-        </div>
-      </section>
-
-      <!-- Resources Section -->
-      <section id="resourcesSection" class="content-section">
-        <div class="header">
-          <h1>Upload Resources</h1>
-          <p class="subtitle">Share audio, video, or articles with patients</p>
+        <div class="chart-card">
+          <p class="chart-title">Stress Level Trend</p>
+          <p class="chart-subtitle">Daily stress levels over recorded entries</p>
+          <div class="chart-canvas-wrap">
+            <canvas id="patientHistoryChart"></canvas>
+          </div>
         </div>
 
         <div class="card">
-          <h3>Upload New Resource</h3>
-          <form id="resourceUploadForm">
-            <div class="form-group">
-              <label>Resource Type</label>
-              <select id="resourceType" required>
-                <option value="">Select type...</option>
-                <option value="audio">🎵 Audio</option>
-                <option value="video">🎬 Video</option>
-                <option value="article">📄 Article (PDF)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Title</label>
-              <input type="text" id="resourceTitle" placeholder="Resource title" required>
-            </div>
-            <div class="form-group">
-              <label>Description</label>
-              <textarea id="resourceDescription" rows="3" placeholder="Brief description of the resource" required></textarea>
-            </div>
-            <div class="form-group">
-              <label>Upload File</label>
-              <input type="file" id="resourceFile" accept="audio/*,video/*,.pdf" required>
-              <small>Max file size: 50MB</small>
-            </div>
-            <button type="submit" class="btn btn-primary">📤 Upload Resource</button>
-            <p class="info-text">Note: Resources will be sent to admin for approval before being visible to patients.</p>
-          </form>
+          <p class="card-title">Recent Wellness Entries</p>
+          <div id="patientWellnessEntries"></div>
         </div>
+      </div>
+    </section>
 
-        <div class="card" style="margin-top: 20px;">
-          <h3>My Uploaded Resources</h3>
-          <div id="myResourcesList">
-            <p class="empty-state">No resources uploaded yet</p>
+    <!-- SENTIMENT TRENDS -->
+    <section id="sentimentSection" class="content-section">
+      <div class="page-header">
+        <h1>Patient Sentiment Trends</h1>
+        <p>Patients ranked by average stress level</p>
+      </div>
+      <div class="card">
+        <div id="sentimentTrends">
+          <div class="empty-state">
+            <div class="empty-state-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <p>Loading sentiment data...</p>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Complaint Section -->
-      <section id="complaintSection" class="content-section">
-        <div class="header">
-          <h1>File a Complaint</h1>
-          <p class="subtitle">Report any issues or concerns</p>
-        </div>
-        <div class="card">
-          <form id="complaintForm">
-            <div class="form-group">
-              <label>Complaint Against</label>
-              <select id="complaintAgainst" required>
-                <option value="">Select</option>
-                <option value="patient">A Patient</option>
-                <option value="system">System/Technical Issue</option>
-                <option value="admin">Administration</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div class="form-group" id="patientSelectGroup" style="display:none;">
-              <label>Select Patient</label>
-              <select id="complaintPatientId">
-                <option value="">Choose patient...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Subject</label>
-              <input type="text" id="complaintSubject" placeholder="Brief subject line" required>
-            </div>
-            <div class="form-group">
-              <label>Detailed Description</label>
-              <textarea id="complaintDescription" rows="6" placeholder="Please describe your complaint in detail..." required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Submit Complaint</button>
-          </form>
+    <!-- TELECOUNSELING -->
+    <section id="telecounselingSection" class="content-section">
+      <div class="page-header">
+        <h1>Telecounseling</h1>
+        <p>Communicate with your patients securely</p>
+      </div>
 
-          <div style="margin-top: 30px;">
-            <h3>Your Previous Complaints</h3>
-            <div id="complaintsList"></div>
+      <div class="telecounseling-layout">
+
+        <!-- Patient list -->
+        <div class="chat-patient-list">
+          <div class="chat-patient-list-header">
+            <h3>Patients</h3>
+            <p>Select a patient to chat</p>
+          </div>
+          <div class="chat-patient-list-body" id="chatPatientsList">
+            <div class="empty-state" style="padding:24px;">
+              <div class="empty-state-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+              <p>No patients yet</p>
+            </div>
           </div>
         </div>
-      </section>
-    </main>
-  </div>
 
-  <div id="notification" class="notification"></div>
+        <!-- Chat area -->
+        <div class="chat-area">
+          <!-- Placeholder when no patient selected -->
+          <div class="chat-empty-state" id="chatEmptyState">
+            <div class="chat-empty-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3>Select a patient</h3>
+            <p>Choose a patient from the list to start a conversation</p>
+          </div>
 
-  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script>
-    const API_URL = 'http://localhost:3000/api';
-    let currentPatientId = null;
-  </script>
-  <script src="js/main.js"></script>
-  <script src="js/telecommunication.js"></script>
-  <script src="js/resource.js"></script>
-  <script src="js/doctor-dashboard.js"></script>
+          <!-- Chat header (shown when patient selected) -->
+          <div class="chat-header" id="chatHeaderDoctor" style="display:none;">
+            <div class="chat-header-profile">
+              <img src="" alt="Patient" id="patientPhotoChat" class="chat-avatar">
+              <div class="chat-header-info">
+                <h3 id="patientNameChat">Patient</h3>
+                <p><span class="online-dot"></span><span id="patientStatusChat">Active Patient</span></p>
+              </div>
+            </div>
+            <div class="call-btn-group">
+              <button class="call-btn call-btn-audio" id="audioCallBtnDoctor" title="Audio Call">
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </button>
+              <button class="call-btn call-btn-video" id="videoCallBtnDoctor" title="Video Call">
+                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Messages -->
+          <div class="chat-messages" id="chatMessagesDoctor" style="display:none;"></div>
+
+          <!-- Input bar -->
+          <div class="chat-input-bar" id="chatInputDoctor" style="display:none;">
+            <input type="text" id="messageInputDoctor" placeholder="Type your message..." class="chat-input">
+            <button class="voice-record-btn" id="voiceMessageBtnDoctor" title="Record voice message">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="send-btn" id="sendMessageBtnDoctor">
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Call Modal -->
+      <div id="videoCallModalDoctor" class="modal" style="display:none;">
+        <div class="video-call-modal">
+          <div class="video-container">
+            <video id="remoteVideoDoctor" autoplay playsinline></video>
+            <video id="localVideoDoctor"  autoplay muted playsinline></video>
+            <div class="audio-only-indicator">
+              <div style="width:80px;height:80px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.39 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <div class="name">Audio Call</div>
+              <div class="status">Connecting...</div>
+            </div>
+          </div>
+          <div class="call-controls">
+            <button class="call-ctrl-btn mute" id="toggleAudioBtnDoctor" title="Mute / Unmute">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            </button>
+            <button class="call-ctrl-btn end-call" id="endCallBtnDoctor" title="End Call">
+              <svg viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 2 3.39a2 2 0 0 1 2-2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79M23 1L1 23"/></svg>
+            </button>
+            <button class="call-ctrl-btn video-off" id="toggleVideoBtnDoctor" title="Video On/Off">
+              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- APPOINTMENTS -->
+    <section id="appointmentsSection" class="content-section">
+      <div class="page-header">
+        <h1>Appointment Requests</h1>
+        <p>Review and manage patient appointment requests</p>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="pending">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Pending
+        </button>
+        <button class="filter-btn" data-filter="approved">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Approved
+        </button>
+        <button class="filter-btn" data-filter="rejected">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Rejected
+        </button>
+        <button class="filter-btn" data-filter="all">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          All
+        </button>
+      </div>
+
+      <div id="appointmentsList">
+        <div class="empty-state">
+          <div class="empty-state-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <p>Loading appointments...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- UPLOAD RESOURCES -->
+    <section id="resourcesSection" class="content-section">
+      <div class="page-header">
+        <h1>Upload Resources</h1>
+        <p>Share curated audio, video, or articles with your patients</p>
+      </div>
+
+      <div class="resource-form-card">
+        <p class="card-title">Upload New Resource</p>
+
+        <!-- Type selector tabs -->
+        <div class="resource-type-tabs" id="resourceTypeTabs">
+          <button type="button" class="resource-type-tab active" data-type="audio" onclick="selectResourceType('audio', this)">
+            <div class="tab-icon audio-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="tab-label">Audio</div>
+          </button>
+          <button type="button" class="resource-type-tab" data-type="video" onclick="selectResourceType('video', this)">
+            <div class="tab-icon video-icon">
+              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            </div>
+            <div class="tab-label">Video</div>
+          </button>
+          <button type="button" class="resource-type-tab" data-type="article" onclick="selectResourceType('article', this)">
+            <div class="tab-icon article-icon">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="tab-label">Article (PDF)</div>
+          </button>
+        </div>
+
+        <form id="resourceUploadForm">
+          <input type="hidden" id="resourceType" value="audio">
+
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="resourceTitle" placeholder="Give this resource a clear, helpful title" required>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="resourceDescription" rows="3" placeholder="Brief description of what patients will learn or experience..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Upload File</label>
+            <div class="file-upload-area" id="fileUploadArea">
+              <input type="file" id="resourceFile" accept="audio/*,video/*,.pdf" required onchange="handleFileSelect(this)">
+              <div class="file-upload-icon">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <p class="file-upload-title">Click to browse or drag & drop</p>
+              <p class="file-upload-hint">Supports audio, video, and PDF files up to 50 MB</p>
+              <p class="file-upload-name" id="fileUploadName"></p>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:4px;">
+            <button type="submit" class="btn btn-primary" id="uploadSubmitBtn">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Resource
+            </button>
+            <span style="font-size:12.5px; color:var(--text-muted);">Admin approval required before patients can view</span>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <p class="card-title">My Uploaded Resources</p>
+        <div id="myResourcesList">
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg>
+            </div>
+            <p>No resources uploaded yet</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPLAINT -->
+    <section id="complaintSection" class="content-section">
+      <div class="page-header">
+        <h1>File a Complaint</h1>
+        <p>Report any issues or concerns for admin review</p>
+      </div>
+
+      <div class="card" style="margin-bottom:24px;">
+        <p class="card-title">New Complaint</p>
+        <form id="complaintForm">
+          <div class="form-group">
+            <label>Complaint Against</label>
+            <select id="complaintAgainst" required>
+              <option value="">Select category</option>
+              <option value="patient">A Patient</option>
+              <option value="system">System / Technical Issue</option>
+              <option value="admin">Administration</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" id="patientSelectGroup" style="display:none;">
+            <label>Select Patient</label>
+            <select id="complaintPatientId">
+              <option value="">Choose patient...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="complaintSubject" placeholder="Brief subject line" required>
+          </div>
+          <div class="form-group">
+            <label>Detailed Description</label>
+            <textarea id="complaintDescription" rows="5" placeholder="Please describe your concern in detail..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Complaint</button>
+        </form>
+      </div>
+
+      <div>
+        <p class="card-title" style="margin-bottom:14px;">Previous Complaints</p>
+        <div id="complaintsList">
+          <div class="empty-state">
+            <div class="empty-state-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <p>No complaints filed yet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div><!-- /dashboard -->
+
+<div id="notification" class="notification"></div>
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/telecommunication.js"></script>
+<script src="js/resource.js"></script>
+<script src="js/doctor-dashboard.js"></script>
 </body>
 </html>
